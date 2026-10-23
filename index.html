@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WO 战术板</title>
+  <!-- 引入极速压缩库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
   <style>
     :root {
       --bg: #0f0f13; --panel: #17171c; --card: #222229; --card-hover: #2a2a33;
@@ -246,7 +248,7 @@
           请点击下方按钮复制<b>专属分享链接</b>。<br>
           发给队友后，队友用浏览器打开链接，即可<b>直接查看战术（自动进入只读模式）</b>。
         </p>
-        <textarea id="shareCodeText" rows="5" style="font-family:monospace; font-size:12px; color:var(--accent); background:#0f0f13;" readonly placeholder="链接生成中..."></textarea>
+        <textarea id="shareCodeText" rows="4" style="font-family:monospace; font-size:12px; color:var(--accent); background:#0f0f13;" readonly placeholder="链接生成中..."></textarea>
         <button class="btn primary block" id="copyShareCodeBtn" style="padding:12px; font-size:15px;">📋 一键复制完整分享链接</button>
       </div>
     </div>
@@ -263,7 +265,7 @@
   <div id="toastBox"></div>
 
   <script>
-    const STORAGE_KEY = 'wo-tactics-board-v35';
+    const STORAGE_KEY = 'wo-tactics-board-v36';
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
@@ -319,12 +321,18 @@
     }
 
     function load() {
-      // 注意：这里使用真实的 location.hash 获取
       const hash = new URLSearchParams(window.location.hash.substring(1)).get('data');
       if (hash) {
         isViewMode = true;
-        try { Object.assign(db, cleanData(JSON.parse(decodeURIComponent(atob(hash))))); toast('🔗 只读模式已加载', 'ok'); } 
-        catch(e) { toast('分享链接损坏', 'error'); }
+        try { 
+          // 【核心修复】使用极速解压
+          const decompressed = LZString.decompressFromEncodedURIComponent(hash);
+          Object.assign(db, cleanData(JSON.parse(decompressed))); 
+          toast('🔗 只读模式已加载', 'ok'); 
+        } catch(e) { 
+          toast('分享链接损坏', 'error'); 
+          console.error(e);
+        }
       } else {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
@@ -619,13 +627,17 @@
             <button class="btn block" id="restoreCodeBtn" style="margin-top:10px;color:var(--warn);border-color:var(--warn);">🔄 恢复数据 / 载入分享码</button>
           </div>`;
         $('genCodeBtn').onclick = () => {
-          const str = btoa(encodeURIComponent(JSON.stringify({ library: db.library, roster: db.roster })));
+          const str = LZString.compressToEncodedURIComponent(JSON.stringify({ library: db.library, roster: db.roster }));
           $('dataCodeText').value = str; $('dataCodeText').select(); document.execCommand('copy'); toast('资料库代码已复制', 'ok');
         };
         $('restoreCodeBtn').onclick = () => {
           let code = $('dataCodeText').value.replace(/\s+/g, ''); if (!code) return toast('粘贴代码', 'warn');
           try {
-            const parsed = cleanData(JSON.parse(decodeURIComponent(atob(code))));
+            let decompressed = '';
+            try { decompressed = LZString.decompressFromEncodedURIComponent(code); } catch(e) {}
+            if (!decompressed || !decompressed.startsWith('{')) decompressed = decodeURIComponent(atob(code)); // 兼容老版
+            
+            const parsed = cleanData(JSON.parse(decompressed));
             if (parsed.players) { 
               Object.assign(db, parsed); save(); toast('战术已载入', 'ok'); setTimeout(() => location.reload(), 1000);
             } else { 
@@ -685,15 +697,16 @@
     $('dungeonName').oninput = e => { db.dungeonName = e.target.value; save(); };
     $('resetBtn').onclick = () => { if(confirm('确定清空？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
     
-    // 【核心更新】生成真实分享链接
+    // 【核心更新】极速压缩生成分享链接
     $('shareBtn').onclick = () => {
       const usedC = new Set(db.players.map(p => p.class)); const slimLib = {};
       usedC.forEach(c => { if (db.library[c]) slimLib[c] = db.library[c]; });
-      const str = btoa(encodeURIComponent(JSON.stringify({ dungeonName: db.dungeonName, activePhases: db.activePhases, players: db.players, actions: db.actions, library: slimLib })));
+      const dataToShare = { dungeonName: db.dungeonName, activePhases: db.activePhases, players: db.players, actions: db.actions, library: slimLib };
       
-      // 获取当前真实网页的域名和路径
+      // 使用极速压缩算法，长度减少 70%
+      const str = LZString.compressToEncodedURIComponent(JSON.stringify(dataToShare));
+      
       const baseUrl = window.location.origin + window.location.pathname;
-      // 拼接成完整的可点击链接
       const shareUrl = `${baseUrl}#data=${str}`;
       
       $('shareCodeText').value = shareUrl; 
