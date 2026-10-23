@@ -187,7 +187,7 @@
         <input type="text" id="dungeonName" class="dungeon-input" placeholder="输入副本名称..." value="未命名副本">
       </div>
       <div style="display:flex; gap:10px;" id="adminToolbar">
-        <button class="btn" id="shareBtn" style="color:var(--accent); border-color:var(--accent);">📋 生成战术分享码</button>
+        <button class="btn" id="shareBtn" style="color:var(--accent); border-color:var(--accent);">🔗 生成分享链接</button>
         <button class="btn" id="exportBtn">📤 全量导出备份</button>
         <button class="btn" id="importBtn">📥 全量导入备份</button>
         <input type="file" id="importFile" style="display:none;" accept=".json">
@@ -240,11 +240,14 @@
 
   <div class="modal-mask" id="shareMask">
     <div class="modal" id="shareModal">
-      <div class="modal-head"><h3>生成战术分享码</h3><button class="icon-btn" id="closeShareBtn">&times;</button></div>
+      <div class="modal-head"><h3>生成战术分享链接</h3><button class="icon-btn" id="closeShareBtn">&times;</button></div>
       <div class="modal-body">
-        <p style="font-size:14px; color:var(--text); line-height:1.6; margin:0;">请复制下方文本发给队友。队友在【数据管理】粘贴后即可查看（只读模式）。</p>
-        <textarea id="shareCodeText" rows="6" style="font-family:monospace; font-size:12px; color:var(--accent); background:#0f0f13;" readonly></textarea>
-        <button class="btn primary block" id="copyShareCodeBtn" style="padding:12px; font-size:15px;">📋 一键复制分享码</button>
+        <p style="font-size:14px; color:var(--text); line-height:1.6; margin:0;">
+          请点击下方按钮复制<b>专属分享链接</b>。<br>
+          发给队友后，队友用浏览器打开链接，即可<b>直接查看战术（自动进入只读模式）</b>。
+        </p>
+        <textarea id="shareCodeText" rows="5" style="font-family:monospace; font-size:12px; color:var(--accent); background:#0f0f13;" readonly placeholder="链接生成中..."></textarea>
+        <button class="btn primary block" id="copyShareCodeBtn" style="padding:12px; font-size:15px;">📋 一键复制完整分享链接</button>
       </div>
     </div>
   </div>
@@ -260,7 +263,7 @@
   <div id="toastBox"></div>
 
   <script>
-    const STORAGE_KEY = 'wo-tactics-board-v34';
+    const STORAGE_KEY = 'wo-tactics-board-v35';
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
@@ -279,7 +282,6 @@
 
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    // 极致精简的数据清洗
     function cleanData(d) {
       if (!d.library) d.library = {};
       if (d.library['死灵术士']) { d.library['死灵师'] = d.library['死灵术士']; delete d.library['死灵术士']; }
@@ -293,7 +295,7 @@
       
       if (d.players) {
         d.players = d.players.filter(p => p && p.name && p.class).map(p => ({...p, class: fixC(p.class), position: fixP(p.position)}));
-        d.players = d.players.slice(0, 12); // 强制截断防满编报错
+        d.players = d.players.slice(0, 12);
       }
 
       if (d.library) {
@@ -317,11 +319,12 @@
     }
 
     function load() {
+      // 注意：这里使用真实的 location.hash 获取
       const hash = new URLSearchParams(window.location.hash.substring(1)).get('data');
       if (hash) {
         isViewMode = true;
         try { Object.assign(db, cleanData(JSON.parse(decodeURIComponent(atob(hash))))); toast('🔗 只读模式已加载', 'ok'); } 
-        catch(e) { toast('分享码损坏', 'error'); }
+        catch(e) { toast('分享链接损坏', 'error'); }
       } else {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
@@ -363,7 +366,6 @@
       if (view === 'deploy') renderDeploy(); else renderTactics();
     }
 
-    // ================= 渲染沙盘 =================
     function renderDeploy() {
       deploySandbox.innerHTML = ['前', '左', '中', '右', '后'].map(pos => {
         const list = db.players.filter(p => p.position === pos);
@@ -385,7 +387,6 @@
       }).join('');
     }
 
-    // ================= 渲染战术表 =================
     function renderTactics() {
       phaseBar.innerHTML = db.activePhases.map(p => `<button class="phase-btn${p === currentPhase ? ' active' : ''}" data-phase="${p}">${p}</button>`).join('');
       
@@ -426,7 +427,6 @@
       }).join('');
     }
 
-    // ================= 抽屉逻辑 =================
     function openDrawer(player = null, position = null, mode = 'deploy') {
       if (isViewMode) return;
       drawerMode = mode;
@@ -493,7 +493,6 @@
         return;
       }
 
-      // 战术模式
       const skills = db.library[currentPlayer.class] || [];
       let listHtml = actionsDraft.map((act, i) => {
         const sk = skills.find(s => s.id === act.skillId);
@@ -528,7 +527,6 @@
       $('drawerFooter').innerHTML = `<button class="btn primary block" id="btn-save-tactics">保存战术</button>`;
     }
 
-    // ================= 事件委托 =================
     drawerBody.addEventListener('click', e => {
       const t = e.target;
       if (t.id === 'startAddBtn') { isAddingAction = true; renderDrawerBody(); }
@@ -566,14 +564,13 @@
 
     $('drawerFooter').addEventListener('click', e => {
       if (e.target.id === 'btn-save-tactics') {
-        if (isAddingAction && currentActionDraft.skillId) actionsDraft.push({ ...currentActionDraft }); // 兜底保存
+        if (isAddingAction && currentActionDraft.skillId) actionsDraft.push({ ...currentActionDraft });
         if (!db.actions[currentPhase]) db.actions[currentPhase] = {};
         db.actions[currentPhase][currentPlayer.id] = JSON.parse(JSON.stringify(actionsDraft));
         save(); closeDrawer(); renderTactics(); toast('战术已保存', 'ok');
       }
     });
 
-    // ================= 战术库配置 =================
     function renderLib() {
       document.querySelectorAll('.lib-tab').forEach(t => t.classList.toggle('active', t.dataset.libtab === currentLibTab));
       if (currentLibTab === 'roster') {
@@ -629,9 +626,9 @@
           let code = $('dataCodeText').value.replace(/\s+/g, ''); if (!code) return toast('粘贴代码', 'warn');
           try {
             const parsed = cleanData(JSON.parse(decodeURIComponent(atob(code))));
-            if (parsed.players) { // 战术分享码
+            if (parsed.players) { 
               Object.assign(db, parsed); save(); toast('战术已载入', 'ok'); setTimeout(() => location.reload(), 1000);
-            } else { // 纯资料库
+            } else { 
               if (parsed.library) db.library = parsed.library;
               if (parsed.roster?.length) db.roster = parsed.roster;
               save(); toast('资料库恢复成功', 'ok'); setTimeout(() => location.reload(), 1000);
@@ -641,7 +638,6 @@
       }
     }
 
-    // ================= 绑定全局事件 =================
     document.querySelectorAll('.view-tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
     $('openLibBtn').onclick = () => { libMask.classList.add('show'); renderLib(); };
     $('closeLibBtn').onclick = () => libMask.classList.remove('show');
@@ -689,13 +685,27 @@
     $('dungeonName').oninput = e => { db.dungeonName = e.target.value; save(); };
     $('resetBtn').onclick = () => { if(confirm('确定清空？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
     
+    // 【核心更新】生成真实分享链接
     $('shareBtn').onclick = () => {
       const usedC = new Set(db.players.map(p => p.class)); const slimLib = {};
       usedC.forEach(c => { if (db.library[c]) slimLib[c] = db.library[c]; });
       const str = btoa(encodeURIComponent(JSON.stringify({ dungeonName: db.dungeonName, activePhases: db.activePhases, players: db.players, actions: db.actions, library: slimLib })));
-      $('shareCodeText').value = str; $('shareMask').classList.add('show');
+      
+      // 获取当前真实网页的域名和路径
+      const baseUrl = window.location.origin + window.location.pathname;
+      // 拼接成完整的可点击链接
+      const shareUrl = `${baseUrl}#data=${str}`;
+      
+      $('shareCodeText').value = shareUrl; 
+      $('shareMask').classList.add('show');
     };
-    $('copyShareCodeBtn').onclick = () => { $('shareCodeText').select(); document.execCommand('copy'); toast('已复制', 'ok'); $('shareMask').classList.remove('show'); };
+    
+    $('copyShareCodeBtn').onclick = () => { 
+      $('shareCodeText').select(); 
+      document.execCommand('copy'); 
+      toast('✅ 链接已复制！发给队友即可直接打开', 'ok'); 
+      $('shareMask').classList.remove('show'); 
+    };
     $('closeShareBtn').onclick = () => $('shareMask').classList.remove('show');
 
     $('exportBtn').onclick = () => {
@@ -711,7 +721,6 @@
       }; r.readAsText(f);
     };
 
-    // 启动
     load();
     switchView('deploy');
   </script>
