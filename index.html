@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WO 战术板</title>
-  <!-- 仅保留截图库，删除了没用的压缩库 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
@@ -17,27 +16,22 @@
     [hidden] { display: none !important; }
     body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     
-    /* ================= 页面常规 UI 样式 ================= */
+    /* 顶部 UI */
     .top-bar { display: flex; flex-direction: column; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: rgba(15, 15, 19, 0.96); z-index: 20; flex-shrink: 0; }
     .title-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .title-row h1 { margin: 0; font-size: 20px; letter-spacing: 1px; color: var(--accent); white-space: nowrap; }
     .dungeon-input { background: transparent; border: 1px dashed var(--line-strong); color: #fff; font-size: 16px; font-weight: bold; padding: 6px 12px; border-radius: 6px; outline: none; width: 200px; transition: border-color 0.2s; }
     .dungeon-input:focus { border-color: var(--accent); }
-    
     .view-tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--line); padding: 0 20px; flex-shrink: 0; background: var(--panel); }
     .view-tab { padding: 12px 20px; background: transparent; border: none; border-bottom: 3px solid transparent; color: var(--muted); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
     .view-tab:hover { color: var(--text); }
     .view-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
     .main-content { flex: 1; overflow: hidden; position: relative; }
 
-    /* 视图1：大沙盘 */
+    /* 大沙盘视图 */
     #viewDeploy { height: 100%; display: flex; padding: 20px; overflow: hidden; }
     .deploy-center { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
-    .cross-container { 
-      display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 15px; 
-      width: 100%; max-width: 1000px; height: 80vh; max-height: 900px;
-    }
+    .cross-container { display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 15px; width: 100%; max-width: 1000px; height: 80vh; max-height: 900px; }
     .position-group { 
       border: 2px solid #4CAF50; border-radius: 10px; background: var(--panel); 
       display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; 
@@ -51,24 +45,22 @@
     .position-group h3 { position: absolute; top: 12px; left: 0; width: 100%; text-align: center; color: #8bc34a; margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 2px; }
     .pos-back h3 { color: #FF9800; }
     .pos-middle h3 { color: var(--accent); }
-
     .player-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 12px; cursor: pointer; transition: all 0.2s; position: relative; width: 120px; flex-shrink: 0; }
     .player-card:hover { border-color: var(--accent); background: var(--card-hover); transform: translateY(-2px); }
-    .player-card .name { font-size: 1em; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .player-card .name { font-size: 1em; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .player-card .class { font-size: 0.75em; color: var(--muted); margin-top: 4px; }
     .player-card .del-btn { position: absolute; top: -8px; right: -8px; color: #fff; background: var(--danger); border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; z-index: 10; }
     .player-card:hover .del-btn { opacity: 1; }
     .add-btn { background: rgba(255,255,255,0.03); border: 1px dashed var(--line-strong); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: all 0.2s; font-size: 24px; display: flex; align-items: center; justify-content: center; margin: auto; }
     .add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); transform: scale(1.1); }
 
-    /* 视图2：战术编排 */
+    /* 战术编排视图 */
     #viewTactics { padding: 20px; display: flex; flex-direction: column; gap: 15px; max-width: 1200px; margin: 0 auto; height: 100%; overflow-y: auto; }
     .phase-control-bar { display: flex; align-items: center; justify-content: space-between; background: var(--panel); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--line); flex-wrap: wrap; gap: 10px; }
     .phase-list { display: flex; gap: 8px; flex-wrap: wrap; }
     .phase-btn { min-width: 52px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line-strong); background: #1c1c23; color: var(--muted); font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; font-weight: 600; }
     .phase-btn:hover { border-color: #66667a; color: var(--text); }
     .phase-btn.active { background: var(--accent); border-color: var(--accent); color: #001014; font-weight: 800; }
-
     .tactic-list { display: flex; flex-direction: column; gap: 12px; }
     .tactic-group { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
     .tactic-group-header { background: #1c1c23; padding: 8px 15px; font-size: 13px; font-weight: 700; color: #8bc34a; border-bottom: 1px solid var(--line); }
@@ -76,22 +68,20 @@
     .tactic-row { display: flex; align-items: flex-start; padding: 10px 15px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background 0.2s; }
     .tactic-row:last-child { border-bottom: none; }
     .tactic-row:hover { background: var(--card-hover); }
-    
     .col-name { width: 100px; flex-shrink: 0; font-weight: 700; font-size: 14px; color: var(--text); }
     .col-class { width: 80px; flex-shrink: 0; font-size: 13px; color: var(--muted); }
     .col-timing { width: 60px; flex-shrink: 0; }
     .col-skill { width: 150px; flex-shrink: 0; font-size: 14px; font-weight: bold; color: var(--warn); }
-    .col-item { width: 120px; flex-shrink: 0; font-size: 13px; }
-    .col-target { width: 100px; flex-shrink: 0; font-size: 13px; color: var(--accent); } 
+    .col-item { width: 120px; flex-shrink: 0; font-size: 13px; color: var(--success); }
+    .col-target { width: 100px; flex-shrink: 0; font-size: 13px; color: var(--accent); }
     .col-remark { flex: 1; font-size: 13px; color: var(--muted); font-style: italic; overflow: hidden; text-overflow: ellipsis; }
-
     .tag-timing { font-size: 12px; font-weight: bold; padding: 2px 6px; border-radius: 4px; display: inline-block; text-align: center; width: 40px; }
     .tag-timing.AM { background: rgba(255, 200, 87, 0.15); color: var(--warn); }
     .tag-timing.PM { background: rgba(0, 217, 255, 0.15); color: var(--accent); }
     .tag-empty { color: var(--muted); font-size: 12px; font-style: italic; }
     .tag-item { font-size: 12px; color: var(--success); border: 1px solid var(--success); padding: 1px 4px; border-radius: 4px; display: inline-block; }
 
-    /* 通用组件与弹窗 */
+    /* 通用组件 */
     .btn { background: #26262e; color: var(--text); border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; transition: all 0.15s; font-family: inherit; font-weight: 600; }
     .btn:hover { border-color: #66667a; background: #2f2f38; }
     .btn.primary { background: var(--accent); border-color: var(--accent); color: #001014; }
@@ -105,18 +95,18 @@
     .radio-row { display: flex; gap: 16px; }
     .radio { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #ccc; cursor: pointer; }
 
+    /* 弹窗与抽屉 */
     .mask { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 50; }
     .mask.show { opacity: 1; pointer-events: auto; }
     .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: 460px; max-width: 92vw; background: #141418; border-left: 1px solid var(--line-strong); display: flex; flex-direction: column; transform: translateX(105%); transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); z-index: 60; }
     .drawer.open { transform: translateX(0); }
     .drawer-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); }
-    .drawer-title { font-size: 18px; font-weight: 800; }
+    .drawer-title { font-size: 18px; font-weight: 800; color: var(--text); }
     .drawer-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
     .icon-btn { background: transparent; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
     .icon-btn:hover { color: var(--text); }
     .drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
     .drawer-foot { padding: 14px 20px; border-top: 1px solid var(--line); display: flex; gap: 10px; }
-
     .action-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 6px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
     .action-card .a-info { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; }
     .action-card .btn-del-action { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 16px; }
@@ -125,8 +115,7 @@
     .modal-mask.show { opacity: 1; pointer-events: auto; }
     .modal { width: 800px; max-width: 95vw; height: 80vh; background: #141418; border: 1px solid var(--line-strong); border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
     .modal-head { display: flex; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
-    .modal-head h3 { margin: 0; font-size: 16px; }
-    
+    .modal-head h3 { margin: 0; font-size: 16px; color: var(--text); }
     .lib-tabs { display: flex; border-bottom: 1px solid var(--line); padding: 0 20px; background: #17171c; }
     .lib-tab { padding: 12px 20px; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 700; cursor: pointer; }
     .lib-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
@@ -137,7 +126,6 @@
     .lib-class-btn.active { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
     .lib-content { flex: 1; padding: 20px; overflow-y: auto; }
     .lib-content h4 { margin: 0 0 16px; color: var(--accent); }
-    
     .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .skill-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px 12px; position: relative; display: flex; flex-direction: column; gap: 6px; }
     .skill-card .s-name { font-size: 14px; font-weight: 700; color: var(--warn); }
@@ -146,71 +134,55 @@
     .skill-card:hover .btn-del-skill { opacity: 1; }
     .add-skill-form { margin-top: 20px; border-top: 1px dashed var(--line-strong); padding-top: 20px; display: flex; flex-direction: column; gap: 10px; }
     .add-skill-row { display: flex; gap: 10px; align-items: flex-end; }
-
     .roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
     .roster-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px; position: relative; display: flex; flex-direction: column; gap: 4px; }
     .roster-card .r-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .roster-card .r-class { font-size: 12px; color: var(--muted); }
     .roster-card .btn-del-roster { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; }
     .roster-card:hover .btn-del-roster { opacity: 1; }
-
-    /* 生成图片弹窗 */
     #imagePreviewMask .modal { width: 900px; height: 90vh; background: #1a1a1f; }
     #imagePreviewBody { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #0f0f13;}
     #imagePreviewBody img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-    /* ================= 极其高级的战术长图排版 ================= */
+    /* 极其高级的战术长图排版 (隐藏区) */
     #share-view {
       position: absolute; top: -9999px; left: -9999px;
-      width: 900px;
-      background: #121218;
-      color: #fff;
-      padding: 40px;
-      box-sizing: border-box;
-      display: flex; flex-direction: column; gap: 30px;
+      width: 900px; background: #121218; color: #fff; padding: 30px;
+      box-sizing: border-box; display: flex; flex-direction: column; gap: 25px;
+      font-family: "Microsoft YaHei", sans-serif;
     }
-    
-    /* 顶部标题栏 */
     .sv-header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.05); }
-    .sv-title { font-size: 42px; font-weight: bold; color: #00d9ff; margin: 0 0 10px 0; letter-spacing: 4px; text-shadow: 0 0 20px rgba(0, 217, 255, 0.3); }
+    .sv-title { font-size: 40px; font-weight: bold; color: #00d9ff; margin: 0 0 10px 0; letter-spacing: 4px; text-shadow: 0 0 20px rgba(0, 217, 255, 0.3); }
     .sv-subtitle { font-size: 16px; color: #8b8b9a; letter-spacing: 2px; }
-    
-    /* 模块标题 */
     .sv-section-title { font-size: 22px; color: #fff; margin: 0 0 20px 0; border-left: 6px solid #00d9ff; padding-left: 15px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
     .sv-section-title span { font-size: 14px; color: #666; font-weight: normal; }
-    
-    /* 站位卡片区 */
-    .sv-deploy-box { display: flex; flex-direction: column; gap: 15px; background: #1a1a24; padding: 25px; border-radius: 12px; border: 1px solid #2f2f38; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
-    .sv-pos-row { display: flex; align-items: center; }
-    .sv-pos-label { width: 80px; font-weight: bold; color: #8bc34a; font-size: 18px; flex-shrink: 0; }
-    .sv-pos-players { display: flex; flex-wrap: wrap; gap: 15px; }
-    .sv-player-tag { background: linear-gradient(180deg, #2a2a35 0%, #1f1f28 100%); border: 1px solid #454552; padding: 8px 16px; border-radius: 8px; font-size: 16px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-    .sv-player-tag span { font-size: 13px; color: #888; }
-    
-    /* 战术表格 */
-    .sv-tactic-card { background: #1a1a24; border-radius: 12px; border: 1px solid #2f2f38; overflow: hidden; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-    .sv-card-header { background: #222230; padding: 15px 25px; font-size: 20px; font-weight: bold; color: #ffc857; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+    .sv-deploy-grid { display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 10px; width: 100%; height: 380px; margin: 0 auto; }
+    .sv-grid-cell { background: #1a1a24; border-radius: 8px; border: 2px solid #333; padding: 10px; position: relative; display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; overflow: hidden; }
+    .sv-cell-title { position: absolute; top: 5px; left: 0; width: 100%; text-align: center; font-size: 14px; font-weight: bold; color: #555; }
+    .sv-pos-front { grid-column: 1 / -1; grid-row: 1; border-color: #4CAF50; }
+    .sv-pos-left { grid-column: 1; grid-row: 2; border-color: #4CAF50; }
+    .sv-pos-middle { grid-column: 2; grid-row: 2; border-color: #00d9ff; }
+    .sv-pos-right { grid-column: 3; grid-row: 2; border-color: #4CAF50; }
+    .sv-pos-back { grid-column: 1 / -1; grid-row: 3; border-color: #FF9800; }
+    .sv-p-tag { background: #222230; border: 1px solid #444; padding: 4px 10px; border-radius: 4px; font-size: 14px; display: flex; gap: 6px; align-items: center; }
+    .sv-p-tag span { font-size: 12px; color: #888; }
+    .sv-tactic-card { background: #1a1a24; border-radius: 12px; border: 1px solid #2f2f38; overflow: hidden; margin-bottom: 20px; }
+    .sv-card-header { background: #222230; padding: 12px 20px; font-size: 18px; font-weight: bold; color: #ffc857; border-bottom: 1px solid #333; }
     .sv-tactic-table { width: 100%; border-collapse: collapse; }
-    .sv-tactic-table th { background: #15151b; color: #8b8b9a; font-size: 15px; font-weight: normal; text-align: left; padding: 15px 25px; border-bottom: 1px solid #333; }
-    .sv-tactic-table td { padding: 15px 25px; font-size: 16px; border-bottom: 1px solid #2a2a35; color: #ddd; }
+    .sv-tactic-table th { background: #15151b; color: #8b8b9a; font-size: 14px; font-weight: normal; text-align: left; padding: 12px 20px; border-bottom: 1px solid #333; }
+    .sv-tactic-table td { padding: 12px 20px; font-size: 15px; border-bottom: 1px solid #2a2a35; color: #ccc; }
     .sv-tactic-table tr:last-child td { border-bottom: none; }
-    
-    .sv-td-name { font-weight: bold; color: #fff; font-size: 18px; width: 120px; }
-    .sv-td-class { color: #888; width: 100px; }
-    .sv-td-skill { width: 200px; }
-    .sv-td-item { width: 150px; }
+    .sv-td-name { font-weight: bold; color: #ececf1; font-size: 16px; width: 120px; }
+    .sv-td-class { color: #8b8b9a; width: 100px; }
+    .sv-td-skill { width: 220px; color: #ffc857; font-weight: bold; }
+    .sv-td-item { width: 160px; color: #4ade80; }
     .sv-td-target { width: 100px; color: #00d9ff; font-weight: bold; }
-    .sv-td-remark { color: #888; font-size: 14px; }
-    
-    .sv-badge { background: #333; color: #fff; border-radius: 4px; padding: 2px 8px; font-size: 13px; font-weight: bold; margin-right: 8px; }
-    .sv-badge.am { background: rgba(255, 200, 87, 0.2); color: #ffc857; }
-    .sv-badge.pm { background: rgba(0, 217, 255, 0.2); color: #00d9ff; }
-    
-    .sv-skill-text { color: #ffc857; font-weight: bold; }
-    .sv-item-text { color: #4ade80; border: 1px solid #4ade80; padding: 2px 8px; border-radius: 4px; font-size: 14px; }
-
-    /* 底部水印 */
-    .sv-footer { text-align: center; color: #555; font-size: 15px; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #333; letter-spacing: 1px; }
+    .sv-td-remark { color: #8b8b9a; font-size: 13px; font-style: italic; }
+    .sv-badge { display: inline-block; border-radius: 4px; padding: 2px 6px; font-size: 12px; font-weight: bold; margin-right: 6px; text-align: center; width: 40px;}
+    .sv-badge.am { background: rgba(255, 200, 87, 0.15); color: #ffc857; }
+    .sv-badge.pm { background: rgba(0, 217, 255, 0.15); color: #00d9ff; }
+    .sv-item-tag { border: 1px solid #4ade80; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+    .sv-footer { text-align: center; color: #555; font-size: 14px; margin-top: 10px; padding-top: 20px; border-top: 1px dashed #333; }
     .sv-footer span { color: #00d9ff; }
 
     #toastBox { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 120; pointer-events: none; }
@@ -228,8 +200,7 @@
         <h1>WO 战术板</h1>
         <input type="text" id="dungeonName" class="dungeon-input" placeholder="输入副本名称..." value="未命名副本">
       </div>
-      <div style="display:flex; gap:10px;" id="adminToolbar">
-        <!-- 核心按钮：生成图片 -->
+      <div style="display:flex; gap:10px;">
         <button class="btn primary" id="shareImageBtn" style="font-size: 14px; padding: 8px 16px; box-shadow: 0 0 10px rgba(0,217,255,0.3);">📸 生成战术长图</button>
         <button class="btn" id="openLibBtn">⚙️ 战术库配置</button>
         <button class="btn" id="resetBtn" style="color:var(--danger); border-color:var(--danger);">清空数据</button>
@@ -255,33 +226,30 @@
     </div>
   </main>
 
-  <!-- 隐藏的分享视图 (用于截图) -->
+  <!-- 隐藏的纯输出图片区 -->
   <div id="share-view">
     <div class="sv-header">
       <h1 class="sv-title" id="sv-dungeonName">未命名副本</h1>
       <div class="sv-subtitle">WO 战术指挥板 · 团队行动方案</div>
     </div>
-    
     <div>
       <h2 class="sv-section-title">📌 阵容部署 <span>Formation</span></h2>
-      <div class="sv-deploy-box" id="sv-deploy-box"></div>
+      <div class="sv-deploy-grid" id="sv-deploy-grid"></div>
     </div>
-
     <div>
       <h2 class="sv-section-title">⚔️ 阶段战术 <span>Tactics</span></h2>
       <div id="sv-tactics-container"></div>
     </div>
-
     <div class="sv-footer">
-      由 <span id="sv-author">无名指挥官</span> 制作 | 专属战术板：<span id="sv-url">https://noc-github.io</span>
+      由 <span id="sv-author">无名指挥官</span> 制作 | 专属战术板：<span id="sv-url">local</span>
     </div>
   </div>
 
-  <!-- 抽屉与弹窗 -->
+  <!-- 各种弹窗 -->
   <div class="mask" id="drawerMask"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
-      <div><div class="drawer-title" id="drawerTitle">新建队员</div><div class="drawer-sub" id="drawerSub">配置</div></div>
+      <div><div class="drawer-title" id="drawerTitle">标题</div><div class="drawer-sub" id="drawerSub">副标题</div></div>
       <button class="icon-btn" id="drawerClose">&times;</button>
     </div>
     <div class="drawer-body" id="drawerBody"></div>
@@ -300,7 +268,6 @@
     </div>
   </div>
 
-  <!-- 图片预览弹窗 -->
   <div class="modal-mask" id="imagePreviewMask">
     <div class="modal">
       <div class="modal-head">
@@ -322,15 +289,12 @@
   <div id="toastBox"></div>
 
   <script>
-    const STORAGE_KEY = 'wo-tactics-board-v38';
+    const STORAGE_KEY = 'wo-tactics-board-v41'; // 升级版本号，防止旧缓存干扰
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
 
-    let db = { 
-      dungeonName: '未命名副本', authorName: '无名指挥官', activePhases: ['F1', 'F2', 'F3'], 
-      roster: [], library: {}, players: [], actions: {} 
-    };
+    let db = { dungeonName: '未命名副本', authorName: '', activePhases: ['F1', 'F2', 'F3'], roster: [], library: {}, players: [], actions: {} };
     CLASS_NAMES.forEach(n => db.library[n] = []);
 
     let currentView = 'deploy', currentPhase = 'F1', currentPlayer = null;
@@ -338,28 +302,23 @@
     let currentLibClass = CLASS_NAMES[0], currentLibTab = 'roster';
 
     const $ = id => document.getElementById(id);
-    const deploySandbox = $('deploySandbox'), tacticList = $('tacticList'), phaseBar = $('phaseBar');
-    const drawer = $('drawer'), drawerMask = $('drawerMask'), drawerTitle = $('drawerTitle'), drawerSub = $('drawerSub'), drawerBody = $('drawerBody');
-    const libMask = $('libMask'), libBody = $('libBody'), toastBox = $('toastBox');
+    const toastBox = $('toastBox');
 
+    // 极简文本转义
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+    // 极简数据清洗，保证兼容旧版
     function cleanData(d) {
       if (!d.library) d.library = {};
-      if (d.library['死灵术士']) { d.library['死灵师'] = d.library['死灵术士']; delete d.library['死灵术士']; }
-      if (d.library['炼金术师']) { d.library['炼金术士'] = d.library['炼金术师']; delete d.library['炼金术师']; }
-
       const fixC = c => c === '死灵术士' ? '死灵师' : c === '炼金术师' ? '炼金术士' : c;
       const posMap = { '前排': '前', '左翼': '左', '中间': '中', '右翼': '右', '后排': '后', '队后': '后' };
       const fixP = p => posMap[p] || (POSITIONS.includes(p) ? p : '中');
 
       if (d.roster) d.roster = d.roster.filter(r => r && r.name).map(r => ({...r, class: fixC(r.class)}));
-      
       if (d.players) {
         d.players = d.players.filter(p => p && p.name && p.class).map(p => ({...p, class: fixC(p.class), position: fixP(p.position)}));
         d.players = d.players.slice(0, 12);
       }
-
       if (d.library) {
         Object.keys(d.library).forEach(c => {
           if (!Array.isArray(d.library[c])) d.library[c] = [];
@@ -368,7 +327,6 @@
           });
         });
       }
-
       if (d.actions) {
         Object.keys(d.actions).forEach(ph => {
           Object.keys(d.actions[ph]).forEach(id => {
@@ -381,12 +339,10 @@
     }
 
     function load() {
-      // 纯本地化，彻底移除 URL 解析
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) Object.assign(db, cleanData(JSON.parse(raw)));
       } catch(e) {}
-      
       CLASS_NAMES.forEach(n => { if (!Array.isArray(db.library[n])) db.library[n] = []; });
       $('dungeonName').value = db.dungeonName;
       if (!db.activePhases.includes(currentPhase)) currentPhase = db.activePhases[0] || 'F1';
@@ -412,9 +368,9 @@
       if (view === 'deploy') renderDeploy(); else renderTactics();
     }
 
-    // ================= 编辑界面渲染 =================
+    // ================= 主 UI 渲染 =================
     function renderDeploy() {
-      deploySandbox.innerHTML = ['前', '左', '中', '右', '后'].map(pos => {
+      $('deploySandbox').innerHTML = ['前', '左', '中', '右', '后'].map(pos => {
         const list = db.players.filter(p => p.position === pos);
         const posClass = pos === '前' ? 'front' : pos === '后' ? 'back' : pos === '左' ? 'left' : pos === '右' ? 'right' : 'middle';
         const displayName = pos === '左' ? '左翼' : pos === '右' ? '右翼' : pos === '前' ? '前排' : pos === '中' ? '中间' : '后排';
@@ -435,9 +391,9 @@
     }
 
     function renderTactics() {
-      phaseBar.innerHTML = db.activePhases.map(p => `<button class="phase-btn${p === currentPhase ? ' active' : ''}" data-phase="${p}">${p}</button>`).join('');
+      $('phaseBar').innerHTML = db.activePhases.map(p => `<button class="phase-btn${p === currentPhase ? ' active' : ''}" data-phase="${p}">${p}</button>`).join('');
       
-      tacticList.innerHTML = POSITIONS.map(pos => {
+      $('tacticList').innerHTML = POSITIONS.map(pos => {
         const list = db.players.filter(p => p.position === pos);
         if (!list.length) return '';
         const displayName = pos === '左' ? '左翼' : pos === '右' ? '右翼' : pos === '前' ? '前排' : pos === '中' ? '中间' : '后排';
@@ -474,31 +430,28 @@
       }).join('');
     }
 
-    // ================= 核心：超高级战术长图渲染 =================
+    // ================= 生成战术长图核心 =================
     function renderShareView() {
       $('sv-dungeonName').textContent = db.dungeonName || '未命名副本';
       $('sv-author').textContent = db.authorName || '无名指挥官';
       $('sv-url').textContent = window.location.hostname || 'local';
 
-      // 1. 阵容部署（卡片化）
-      let deployHtml = '';
+      // 1. 正方形切割沙盘
       const posNames = { '前': '前排', '左': '左翼', '中': '中间', '右': '右翼', '后': '后排' };
-      ['前', '左', '中', '右', '后'].forEach(pos => {
+      $('sv-deploy-grid').innerHTML = ['前', '左', '中', '右', '后'].map(pos => {
         const list = db.players.filter(p => p.position === pos);
-        if (list.length > 0) {
-          deployHtml += `
-            <div class="sv-pos-row">
-              <div class="sv-pos-label">${posNames[pos]}</div>
-              <div class="sv-pos-players">
-                ${list.map(p => `<div class="sv-player-tag">${esc(p.name)} <span>${esc(p.class)}</span></div>`).join('')}
-              </div>
+        const gridClass = pos === '前' ? 'front' : pos === '后' ? 'back' : pos === '左' ? 'left' : pos === '右' ? 'right' : 'middle';
+        return `
+          <div class="sv-grid-cell sv-pos-${gridClass}">
+            <div class="sv-cell-title">${posNames[pos]}</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:15px;">
+              ${list.map(p => `<div class="sv-p-tag">${esc(p.name)} <span>${esc(p.class)}</span></div>`).join('')}
             </div>
-          `;
-        }
-      });
-      $('sv-deploy-box').innerHTML = deployHtml || '暂无人员';
+          </div>
+        `;
+      }).join('');
 
-      // 2. 楼层战术（过滤空层，海报级表格）
+      // 2. 楼层战术表格
       let tacticsHtml = '';
       db.activePhases.forEach(phase => {
         const phaseActions = db.actions[phase] || {};
@@ -517,15 +470,15 @@
               <div class="sv-card-header">阶段 ${phase}</div>
               <table class="sv-tactic-table">
                 <thead>
-                  <tr><th style="width:120px;">队员</th><th style="width:100px;">职业</th><th style="width:200px;">技能</th><th style="width:150px;">物品</th><th style="width:100px;">位置</th><th>备注</th></tr>
+                  <tr><th style="width:120px;">队员</th><th style="width:100px;">职业</th><th style="width:220px;">技能</th><th style="width:160px;">物品</th><th style="width:100px;">位置</th><th>备注</th></tr>
                 </thead>
                 <tbody>
                   ${rows.map(r => `
                     <tr>
                       <td class="sv-td-name">${esc(r.name)}</td>
                       <td class="sv-td-class">${esc(r.class)}</td>
-                      <td class="sv-td-skill"><span class="sv-badge ${r.timing.toLowerCase()}">${r.timing}</span> <span class="sv-skill-text">${esc(r.skill)}</span></td>
-                      <td class="sv-td-item">${r.item ? `<span class="sv-item-text">${esc(r.item)}</span>` : '-'}</td>
+                      <td class="sv-td-skill"><span class="sv-badge ${r.timing.toLowerCase()}">${r.timing}</span> ${esc(r.skill)}</td>
+                      <td class="sv-td-item">${r.item ? `<span class="sv-item-tag">${esc(r.item)}</span>` : '-'}</td>
                       <td class="sv-td-target">${esc(r.target)}</td>
                       <td class="sv-td-remark">${esc(r.remark || '')}</td>
                     </tr>
@@ -544,18 +497,11 @@
       toast('正在生成高清长图，请稍候...', 'warn');
       
       setTimeout(() => {
-        const shareView = document.getElementById('share-view');
-        html2canvas(shareView, {
-          scale: 2, // 保证清晰度
-          useCORS: true,
-          backgroundColor: '#121218'
-        }).then(canvas => {
-          const imgData = canvas.toDataURL('image/png');
+        html2canvas($('share-view'), { scale: 2, useCORS: true, backgroundColor: '#121218' }).then(canvas => {
           const img = document.createElement('img');
-          img.src = imgData;
-          const previewBody = document.getElementById('imagePreviewBody');
-          previewBody.innerHTML = '';
-          previewBody.appendChild(img);
+          img.src = canvas.toDataURL('image/png');
+          $('imagePreviewBody').innerHTML = '';
+          $('imagePreviewBody').appendChild(img);
           $('imagePreviewMask').classList.add('show');
         }).catch(err => {
           console.error(err);
@@ -565,28 +511,28 @@
     };
     $('closeImageBtn').onclick = () => $('imagePreviewMask').classList.remove('show');
 
-    // ================= 抽屉与基础弹窗逻辑 =================
+    // ================= 抽屉逻辑 =================
     function openDrawer(player = null, position = null, mode = 'deploy') {
       drawerMode = mode;
       if (mode === 'deploy') {
         isAddingAction = false;
         currentPlayer = player;
         playerDraft = player ? { name: player.name, class: player.class, position: player.position } : { name: '', class: CLASS_NAMES[0], position: position };
-        drawerTitle.textContent = player ? '修改队员信息' : '添加新队员';
-        drawerSub.textContent = `入驻位置：${position || (player && player.position)}`;
+        $('drawerTitle').textContent = player ? '修改队员信息' : '添加新队员';
+        $('drawerSub').textContent = `入驻位置：${position || (player && player.position)}`;
       } else {
         currentPlayer = player;
-        actionsDraft = JSON.parse(JSON.stringify(db.actions[currentPhase]?.[player.id] || []));
+        actionsDraft = (db.actions[currentPhase]?.[player.id] || []).map(a => ({...a}));
         isAddingAction = false; currentActionDraft = {}; 
-        drawerTitle.textContent = player.name;
-        drawerSub.textContent = `${player.class} · ${currentPhase} 阶段`;
+        $('drawerTitle').textContent = player.name;
+        $('drawerSub').textContent = `${player.class} · ${currentPhase} 阶段`;
       }
       renderDrawerBody();
-      drawer.classList.add('open'); drawerMask.classList.add('show');
+      $('drawer').classList.add('open'); $('drawerMask').classList.add('show');
     }
 
     function closeDrawer() {
-      drawer.classList.remove('open'); drawerMask.classList.remove('show');
+      $('drawer').classList.remove('open'); $('drawerMask').classList.remove('show');
     }
 
     function renderDrawerBody() {
@@ -596,7 +542,7 @@
           return exist ? `<option disabled>${esc(r.name)} (已在${esc(exist.position)})</option>` : `<option value="${r.id}">${esc(r.name)} (${esc(r.class)})</option>`;
         }).join('');
 
-        drawerBody.innerHTML = `
+        $('drawerBody').innerHTML = `
           <div class="field" style="background:var(--accent-dim);border:1px solid rgba(0,217,255,0.3);padding:10px;border-radius:6px;margin-bottom:20px;">
             <label style="color:var(--accent);">⚡ 快捷选择</label>
             <select id="rosterSelect">${rosterOpts}</select>
@@ -661,11 +607,12 @@
         formHtml = `<button class="btn primary block" id="startAddBtn" style="margin-top:20px;">+ 添加新动作</button>`;
       }
 
-      drawerBody.innerHTML = `<div style="margin-bottom:20px;"><h4 style="color:var(--text);font-size:14px;margin:0 0 12px 0;">已配置 (${actionsDraft.length})</h4>${listHtml}</div>${formHtml}`;
+      $('drawerBody').innerHTML = `<div style="margin-bottom:20px;"><h4 style="color:var(--text);font-size:14px;margin:0 0 12px 0;">已配置 (${actionsDraft.length})</h4>${listHtml}</div>${formHtml}`;
       $('drawerFooter').innerHTML = `<button class="btn primary block" id="btn-save-tactics">保存战术</button>`;
     }
 
-    drawerBody.addEventListener('click', e => {
+    // 抽屉事件委托
+    $('drawerBody').addEventListener('click', e => {
       const t = e.target;
       if (t.id === 'startAddBtn') { isAddingAction = true; renderDrawerBody(); }
       if (t.id === 'cancelAddBtn') { isAddingAction = false; renderDrawerBody(); }
@@ -680,7 +627,7 @@
       }
     });
 
-    drawerBody.addEventListener('change', e => {
+    $('drawerBody').addEventListener('change', e => {
       if (drawerMode === 'tactic' && isAddingAction) {
         if (e.target.name === 'a_timing') return currentActionDraft.timing = e.target.value;
         const f = e.target.dataset.afield;
@@ -695,16 +642,16 @@
       }
     });
 
-    drawerBody.addEventListener('input', e => {
+    $('drawerBody').addEventListener('input', e => {
       if (drawerMode === 'tactic' && isAddingAction && e.target.dataset.afield === 'remark') currentActionDraft.remark = e.target.value;
       if (drawerMode === 'deploy' && e.target.dataset.field === 'name') playerDraft.name = e.target.value;
     });
 
     $('drawerFooter').addEventListener('click', e => {
       if (e.target.id === 'btn-save-tactics') {
-        if (isAddingAction && currentActionDraft.skillId) actionsDraft.push({ ...currentActionDraft });
+        if (isAddingAction && currentActionDraft.skillId) actionsDraft.push({ ...currentActionDraft }); // 兜底保存
         if (!db.actions[currentPhase]) db.actions[currentPhase] = {};
-        db.actions[currentPhase][currentPlayer.id] = JSON.parse(JSON.stringify(actionsDraft));
+        db.actions[currentPhase][currentPlayer.id] = actionsDraft.map(a => ({...a}));
         save(); closeDrawer(); renderTactics(); toast('战术已保存', 'ok');
       }
     });
@@ -713,7 +660,7 @@
     function renderLib() {
       document.querySelectorAll('.lib-tab').forEach(t => t.classList.toggle('active', t.dataset.libtab === currentLibTab));
       if (currentLibTab === 'roster') {
-        libBody.innerHTML = `
+        $('libBody').innerHTML = `
           <div style="flex:1;padding:20px;overflow-y:auto;">
             <div class="roster-grid" style="margin-bottom:20px;">${db.roster.map(r => `<div class="roster-card"><button class="btn-del-roster" data-del-roster="${r.id}">×</button><div class="r-name">${esc(r.name)}</div><div class="r-class">${esc(r.class)}</div></div>`).join('') || '空'}</div>
             <div class="add-skill-form"><h4>添加队员</h4><div class="add-skill-row"><div class="field" style="flex:1;margin:0;"><input type="text" id="newRosterName" placeholder="名字"></div><div class="field" style="flex:1;margin:0;"><select id="newRosterClass">${CLASS_NAMES.map(c => `<option value="${c}">${c}</option>`).join('')}</select></div></div><button class="btn primary" id="addRosterBtn">录入</button></div>
@@ -723,11 +670,11 @@
           db.roster.push({ id: Date.now().toString(), name: n, class: $('newRosterClass').value });
           save(); renderLib(); toast('已录入', 'ok');
         };
-        libBody.querySelectorAll('[data-del-roster]').forEach(b => b.onclick = e => { db.roster = db.roster.filter(r => r.id !== e.target.dataset.delRoster); save(); renderLib(); });
+        $('libBody').querySelectorAll('[data-del-roster]').forEach(b => b.onclick = e => { db.roster = db.roster.filter(r => r.id !== e.target.dataset.delRoster); save(); renderLib(); });
       } 
       else if (currentLibTab === 'skills') {
         const skills = db.library[currentLibClass] || [];
-        libBody.innerHTML = `
+        $('libBody').innerHTML = `
           <div class="lib-sidebar">${CLASS_NAMES.map(c => `<button class="lib-class-btn${currentLibClass===c?' active':''}" data-class="${c}">${c}</button>`).join('')}</div>
           <div class="lib-content">
             <div class="skill-grid">${skills.map(s => `<div class="skill-card"><button class="btn-del-skill" data-del-skill="${s.id}">×</button><div class="s-name">${esc(s.name)}</div>${s.items?.length ? `<div class="s-item">${s.depType==='required'?'🔒':'🎲'} ${esc(s.items.join('/'))}</div>` : ''}</div>`).join('') || '空'}</div>
@@ -738,7 +685,7 @@
               <button class="btn primary" id="addSkillBtn">录入</button>
             </div>
           </div>`;
-        libBody.querySelectorAll('.lib-class-btn').forEach(b => b.onclick = e => { currentLibClass = e.target.dataset.class; renderLib(); });
+        $('libBody').querySelectorAll('.lib-class-btn').forEach(b => b.onclick = e => { currentLibClass = e.target.dataset.class; renderLib(); });
         $('newSkillDep').onchange = e => $('newItemRow').style.display = e.target.value === 'none' ? 'none' : 'flex';
         $('addSkillBtn').onclick = () => {
           const n = $('newSkillName').value.trim(); const dep = $('newSkillDep').value; const it = $('newSkillItem').value.trim();
@@ -747,10 +694,10 @@
           db.library[currentLibClass].push({ id: Date.now().toString(), name: n, depType: dep, items });
           save(); renderLib(); toast('已录入', 'ok');
         };
-        libBody.querySelectorAll('[data-del-skill]').forEach(b => b.onclick = e => { db.library[currentLibClass] = db.library[currentLibClass].filter(s => s.id !== e.target.dataset.delSkill); save(); renderLib(); });
+        $('libBody').querySelectorAll('[data-del-skill]').forEach(b => b.onclick = e => { db.library[currentLibClass] = db.library[currentLibClass].filter(s => s.id !== e.target.dataset.delSkill); save(); renderLib(); });
       } 
       else if (currentLibTab === 'data') {
-        libBody.innerHTML = `
+        $('libBody').innerHTML = `
           <div style="flex:1;padding:20px;overflow-y:auto;">
             <h4>资料库与全量备份</h4>
             <div class="field" style="margin-bottom:20px;">
@@ -778,15 +725,16 @@
       }
     }
 
+    // ================= 全局点击事件 =================
     document.querySelectorAll('.view-tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
-    $('openLibBtn').onclick = () => { libMask.classList.add('show'); renderLib(); };
-    $('closeLibBtn').onclick = () => libMask.classList.remove('show');
+    $('openLibBtn').onclick = () => { $('libMask').classList.add('show'); renderLib(); };
+    $('closeLibBtn').onclick = () => $('libMask').classList.remove('show');
     document.querySelectorAll('.lib-tab').forEach(t => t.onclick = () => { currentLibTab = t.dataset.libtab; renderLib(); });
     
     $('drawerClose').onclick = closeDrawer;
-    drawerMask.onclick = closeDrawer;
+    $('drawerMask').onclick = closeDrawer;
 
-    deploySandbox.onclick = e => {
+    $('deploySandbox').onclick = e => {
       const del = e.target.closest('.del-btn');
       if (del) {
         e.stopPropagation(); const id = del.dataset.del; const p = db.players.find(x => x.id === id);
@@ -802,12 +750,12 @@
       if (card) openDrawer(db.players.find(p => p.id === card.dataset.id), null, 'deploy');
     };
 
-    tacticList.onclick = e => {
+    $('tacticList').onclick = e => {
       const row = e.target.closest('.tactic-row');
       if (row) openDrawer(db.players.find(p => p.id === row.dataset.id), null, 'tactic');
     };
 
-    phaseBar.onclick = e => { if (e.target.classList.contains('phase-btn')) { currentPhase = e.target.dataset.phase; renderTactics(); } };
+    $('phaseBar').onclick = e => { if (e.target.classList.contains('phase-btn')) { currentPhase = e.target.dataset.phase; renderTactics(); } };
     $('phaseSettingsBtn').onclick = () => {
       $('phaseCheckboxes').innerHTML = ALL_PHASES.map(p => `<label class="radio" style="width:60px;"><input type="checkbox" value="${p}" ${db.activePhases.includes(p)?'checked':''}> ${p}</label>`).join('');
       $('phaseMask').classList.add('show');
@@ -823,6 +771,7 @@
     $('dungeonName').oninput = e => { db.dungeonName = e.target.value; save(); };
     $('resetBtn').onclick = () => { if(confirm('确定清空所有内容吗？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
 
+    // 初始化
     load();
     switchView('deploy');
   </script>
