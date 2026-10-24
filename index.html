@@ -16,7 +16,7 @@
     [hidden] { display: none !important; }
     body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     
-    /* 顶部 UI */
+    /* UI 框架 */
     .top-bar { display: flex; flex-direction: column; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: rgba(15, 15, 19, 0.96); z-index: 20; flex-shrink: 0; }
     .title-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .title-row h1 { margin: 0; font-size: 20px; letter-spacing: 1px; color: var(--accent); white-space: nowrap; }
@@ -28,15 +28,11 @@
     .view-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
     .main-content { flex: 1; overflow: hidden; position: relative; }
 
-    /* 大沙盘视图 */
+    /* 1. 排兵布阵 */
     #viewDeploy { height: 100%; display: flex; padding: 20px; overflow: hidden; }
     .deploy-center { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
     .cross-container { display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 15px; width: 100%; max-width: 1000px; height: 80vh; max-height: 900px; }
-    .position-group { 
-      border: 2px solid #4CAF50; border-radius: 10px; background: var(--panel); 
-      display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; 
-      align-content: flex-start; justify-content: center; position: relative; padding: 45px 15px 15px 15px; overflow-y: auto;
-    }
+    .position-group { border: 2px solid #4CAF50; border-radius: 10px; background: var(--panel); display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; justify-content: center; position: relative; padding: 45px 15px 15px 15px; overflow-y: auto; }
     .pos-front { grid-column: 1 / -1; grid-row: 1; }
     .pos-left { grid-column: 1; grid-row: 2; }
     .pos-middle { grid-column: 2; grid-row: 2; border-color: var(--accent); }
@@ -54,7 +50,7 @@
     .add-btn { background: rgba(255,255,255,0.03); border: 1px dashed var(--line-strong); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: all 0.2s; font-size: 24px; display: flex; align-items: center; justify-content: center; margin: auto; }
     .add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); transform: scale(1.1); }
 
-    /* 战术编排视图 */
+    /* 2. 战术编排 */
     #viewTactics { padding: 20px; display: flex; flex-direction: column; gap: 15px; max-width: 1200px; margin: 0 auto; height: 100%; overflow-y: auto; }
     .phase-control-bar { display: flex; align-items: center; justify-content: space-between; background: var(--panel); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--line); flex-wrap: wrap; gap: 10px; }
     .phase-list { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -95,7 +91,7 @@
     .radio-row { display: flex; gap: 16px; align-items: center; }
     .radio { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #ccc; cursor: pointer; }
 
-    /* 弹窗与抽屉 */
+    /* 弹窗 & 抽屉 */
     .mask { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 50; }
     .mask.show { opacity: 1; pointer-events: auto; }
     .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: 460px; max-width: 92vw; background: #141418; border-left: 1px solid var(--line-strong); display: flex; flex-direction: column; transform: translateX(105%); transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); z-index: 60; }
@@ -133,6 +129,7 @@
     .skill-card .s-item { font-size: 12px; color: var(--success); }
     .skill-card .s-timing { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; }
     .skill-card .s-timing.all { background: #333; color: #ddd; }
+    .skill-card .s-timing.am { background: rgba(255, 200, 87, 0.15); color: var(--warn); border: 1px solid rgba(255, 200, 87, 0.3); }
     .skill-card .s-timing.pm { background: rgba(0, 217, 255, 0.15); color: var(--accent); border: 1px solid rgba(0, 217, 255, 0.3); }
     .skill-card .s-tag-self { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; background: rgba(192, 132, 252, 0.15); color: var(--purple); border: 1px solid rgba(192, 132, 252, 0.3); }
     .skill-card .btn-del-skill { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; }
@@ -151,7 +148,7 @@
     #imagePreviewBody { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #0f0f13;}
     #imagePreviewBody img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-    /* 生成图片排版 (隐藏区) */
+    /* 3. 分享长图排版 (隐藏区) */
     #share-view {
       position: absolute; top: -9999px; left: -9999px;
       width: 900px; background: #121218; color: #fff; padding: 30px;
@@ -296,7 +293,7 @@
   <div id="toastBox"></div>
 
   <script>
-    const STORAGE_KEY = 'wo-tactics-board-v43'; // 升级版本
+    const STORAGE_KEY = 'wo-tactics-board-v45'; // 最终版版本号
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
@@ -313,6 +310,7 @@
 
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+    // 极简数据清洗器
     function cleanData(d) {
       if (!d.library) d.library = {};
       const fixC = c => c === '死灵术士' ? '死灵师' : c === '炼金术师' ? '炼金术士' : c;
@@ -329,8 +327,8 @@
           if (!Array.isArray(d.library[c])) d.library[c] = [];
           d.library[c].forEach(s => {
             if (s.itemName && !s.items) { s.items = [s.itemName]; delete s.itemName; }
-            if (!s.timing) s.timing = ['AM', 'PM']; // 兼容旧数据，默认全可放
-            if (s.selfOnly === undefined) s.selfOnly = false; // 兼容旧数据
+            if (!s.timing) s.timing = ['AM', 'PM'];
+            if (s.selfOnly === undefined) s.selfOnly = false;
           });
         });
       }
@@ -355,9 +353,7 @@
       if (!db.activePhases.includes(currentPhase)) currentPhase = db.activePhases[0] || 'F1';
     }
 
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-    }
+    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
 
     function toast(msg, type) {
       const el = document.createElement('div');
@@ -375,9 +371,9 @@
       if (view === 'deploy') renderDeploy(); else renderTactics();
     }
 
-    // ================= 主 UI 渲染 =================
+    // ================= 1. 排兵布阵 =================
     function renderDeploy() {
-      $('deploySandbox').innerHTML = ['前', '左', '中', '右', '后'].map(pos => {
+      $('deploySandbox').innerHTML = POSITIONS.map(pos => {
         const list = db.players.filter(p => p.position === pos);
         const posClass = pos === '前' ? 'front' : pos === '后' ? 'back' : pos === '左' ? 'left' : pos === '右' ? 'right' : 'middle';
         const displayName = pos === '左' ? '左翼' : pos === '右' ? '右翼' : pos === '前' ? '前排' : pos === '中' ? '中间' : '后排';
@@ -397,6 +393,7 @@
       }).join('');
     }
 
+    // ================= 2. 战术编排 =================
     function renderTactics() {
       $('phaseBar').innerHTML = db.activePhases.map(p => `<button class="phase-btn${p === currentPhase ? ' active' : ''}" data-phase="${p}">${p}</button>`).join('');
       
@@ -437,14 +434,14 @@
       }).join('');
     }
 
-    // ================= 生成战术长图核心 =================
+    // ================= 3. 生成战术长图 =================
     function renderShareView() {
       $('sv-dungeonName').textContent = db.dungeonName || '未命名副本';
       $('sv-author').textContent = db.authorName || '无名指挥官';
       $('sv-url').textContent = window.location.hostname || 'local';
 
       const posNames = { '前': '前排', '左': '左翼', '中': '中间', '右': '右翼', '后': '后排' };
-      $('sv-deploy-grid').innerHTML = ['前', '左', '中', '右', '后'].map(pos => {
+      $('sv-deploy-grid').innerHTML = POSITIONS.map(pos => {
         const list = db.players.filter(p => p.position === pos);
         const gridClass = pos === '前' ? 'front' : pos === '后' ? 'back' : pos === '左' ? 'left' : pos === '右' ? 'right' : 'middle';
         return `
@@ -500,7 +497,6 @@
     $('shareImageBtn').onclick = () => {
       renderShareView();
       toast('正在生成高清长图，请稍候...', 'warn');
-      
       setTimeout(() => {
         html2canvas($('share-view'), { scale: 2, useCORS: true, backgroundColor: '#121218' }).then(canvas => {
           const img = document.createElement('img');
@@ -508,10 +504,7 @@
           $('imagePreviewBody').innerHTML = '';
           $('imagePreviewBody').appendChild(img);
           $('imagePreviewMask').classList.add('show');
-        }).catch(err => {
-          console.error(err);
-          toast('生成失败，请重试', 'error');
-        });
+        }).catch(err => { console.error(err); toast('生成失败，请重试', 'error'); });
       }, 300);
     };
     $('closeImageBtn').onclick = () => $('imagePreviewMask').classList.remove('show');
@@ -536,9 +529,7 @@
       $('drawer').classList.add('open'); $('drawerMask').classList.add('show');
     }
 
-    function closeDrawer() {
-      $('drawer').classList.remove('open'); $('drawerMask').classList.remove('show');
-    }
+    function closeDrawer() { $('drawer').classList.remove('open'); $('drawerMask').classList.remove('show'); }
 
     function renderDrawerBody() {
       if (drawerMode === 'deploy') {
@@ -598,8 +589,8 @@
           itemHtml = `<div class="field"><label>${selSk.depType==='required'?'强制消耗':'可选物品'}</label><select data-afield="item">${selSk.depType==='optional'?'<option value="">-- 不附加 --</option>':''}${selSk.items.map(it => `<option value="${it}"${currentActionDraft.item===it?' selected':''}>${esc(it)}</option>`).join('')}</select></div>`;
         }
         
-        // 判断是否禁用 AM 和 目标选择
         const isPmOnly = selSk && selSk.timing && !selSk.timing.includes('AM');
+        const isAmOnly = selSk && selSk.timing && selSk.timing.includes('AM') && !selSk.timing.includes('PM');
         const isSelfOnly = selSk && selSk.selfOnly;
         
         formHtml = `
@@ -609,9 +600,10 @@
               <label>时机</label>
               <div class="radio-row">
                 <label class="radio"><input type="radio" name="a_timing" value="AM"${currentActionDraft.timing==='AM'?' checked':''} ${isPmOnly ? 'disabled' : ''}>AM</label>
-                <label class="radio"><input type="radio" name="a_timing" value="PM"${currentActionDraft.timing==='PM'?' checked':''}>PM</label>
+                <label class="radio"><input type="radio" name="a_timing" value="PM"${currentActionDraft.timing==='PM'?' checked':''} ${isAmOnly ? 'disabled' : ''}>PM</label>
               </div>
               ${isPmOnly ? `<span style="font-size:12px; color:var(--danger);">此技能限制了只能在回合中(PM)释放</span>` : ''}
+              ${isAmOnly ? `<span style="font-size:12px; color:var(--warn);">此技能限制了只能在回合前(AM)释放</span>` : ''}
             </div>
             <div class="field"><label>技能</label><select data-afield="skillId"><option value="">--选择--</option>${skills.map(s => `<option value="${s.id}"${currentActionDraft.skillId===s.id?' selected':''}>${esc(s.name)}</option>`).join('')}</select></div>
             ${itemHtml}
@@ -634,7 +626,7 @@
       $('drawerFooter').innerHTML = `<button class="btn primary block" id="btn-save-tactics">保存战术</button>`;
     }
 
-    // 抽屉事件委托
+    // 抽屉事件
     $('drawerBody').addEventListener('click', e => {
       const t = e.target;
       if (t.id === 'startAddBtn') { isAddingAction = true; renderDrawerBody(); }
@@ -643,10 +635,8 @@
         if (!currentActionDraft.skillId) return toast('请选择技能', 'warn');
         const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
         if (sk.depType === 'required' && !currentActionDraft.item) return toast('需选择物品', 'warn');
-        if (sk.timing && !sk.timing.includes(currentActionDraft.timing)) {
-          return toast(`【${sk.name}】不支持在 ${currentActionDraft.timing} 释放！`, 'error');
-        }
-        if (sk.selfOnly) currentActionDraft.target = '自身'; // 兜底强制
+        if (sk.timing && !sk.timing.includes(currentActionDraft.timing)) return toast(`【${sk.name}】不支持在 ${currentActionDraft.timing} 释放！`, 'error');
+        if (sk.selfOnly) currentActionDraft.target = '自身';
         actionsDraft.push({ ...currentActionDraft }); isAddingAction = false; renderDrawerBody();
       }
       if (t.classList.contains('btn-del-action')) {
@@ -663,9 +653,8 @@
           const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
           if (sk) {
             if (sk.depType === 'required' && sk.items?.length === 1) currentActionDraft.item = sk.items[0];
-            // 联动：如果只能PM，强制变为PM
             if (sk.timing && !sk.timing.includes('AM')) currentActionDraft.timing = 'PM';
-            // 联动：如果仅自身，强制变为自身
+            if (sk.timing && sk.timing.includes('AM') && !sk.timing.includes('PM')) currentActionDraft.timing = 'AM';
             if (sk.selfOnly) currentActionDraft.target = '自身';
           }
           renderDrawerBody();
@@ -694,7 +683,7 @@
       }
     });
 
-    // ================= 战术库配置 =================
+    // ================= 战术库 =================
     function renderLib() {
       document.querySelectorAll('.lib-tab').forEach(t => t.classList.toggle('active', t.dataset.libtab === currentLibTab));
       if (currentLibTab === 'roster') {
@@ -718,11 +707,13 @@
             <div class="skill-grid">
               ${skills.map(s => {
                 let timingTag = '';
-                if (s.timing && s.timing.includes('AM')) {
-                  timingTag = `<span class="s-timing all">AM/PM</span>`;
-                } else {
-                  timingTag = `<span class="s-timing pm">仅PM</span>`;
-                }
+                const hasAM = s.timing && s.timing.includes('AM');
+                const hasPM = s.timing && s.timing.includes('PM');
+                
+                if (hasAM && hasPM) timingTag = `<span class="s-timing all">AM/PM</span>`;
+                else if (hasAM) timingTag = `<span class="s-timing am">仅AM</span>`;
+                else timingTag = `<span class="s-timing pm">仅PM</span>`;
+                
                 let selfTag = s.selfOnly ? `<span class="s-tag-self">[自身]</span>` : '';
                 return `<div class="skill-card">
                   <button class="btn-del-skill" data-del-skill="${s.id}">×</button>
@@ -800,7 +791,7 @@
       }
     }
 
-    // ================= 全局点击事件 =================
+    // ================= 全局事件 =================
     document.querySelectorAll('.view-tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
     $('openLibBtn').onclick = () => { $('libMask').classList.add('show'); renderLib(); };
     $('closeLibBtn').onclick = () => $('libMask').classList.remove('show');
@@ -846,7 +837,7 @@
     $('dungeonName').oninput = e => { db.dungeonName = e.target.value; save(); };
     $('resetBtn').onclick = () => { if(confirm('确定清空所有内容吗？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
 
-    // 初始化
+    // 启动
     load();
     switchView('deploy');
   </script>
