@@ -41,13 +41,13 @@
     .position-group h3 { position: absolute; top: 12px; left: 0; width: 100%; text-align: center; color: #8bc34a; margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 2px; }
     .pos-back h3 { color: #FF9800; }
     .pos-middle h3 { color: var(--accent); }
-    .player-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 12px; cursor: pointer; transition: all 0.2s; position: relative; width: 120px; flex-shrink: 0; }
+    .player-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 12px; cursor: pointer; transition: transform 0.1s; position: relative; width: 120px; flex-shrink: 0; }
     .player-card:hover { border-color: var(--accent); background: var(--card-hover); transform: translateY(-2px); }
     .player-card .name { font-size: 1em; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .player-card .class { font-size: 0.75em; color: var(--muted); margin-top: 4px; }
     .player-card .del-btn { position: absolute; top: -8px; right: -8px; color: #fff; background: var(--danger); border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; z-index: 10; }
     .player-card:hover .del-btn { opacity: 1; }
-    .add-btn { background: rgba(255,255,255,0.03); border: 1px dashed var(--line-strong); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: all 0.2s; font-size: 24px; display: flex; align-items: center; justify-content: center; margin: auto; }
+    .add-btn { background: rgba(255,255,255,0.03); border: 1px dashed var(--line-strong); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: transform 0.1s; font-size: 24px; display: flex; align-items: center; justify-content: center; margin: auto; }
     .add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); transform: scale(1.1); }
 
     /* 2. 战术编排 */
@@ -67,7 +67,7 @@
     .tactic-group { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
     .tactic-group-header { background: #1c1c23; padding: 8px 15px; font-size: 13px; font-weight: 700; color: #8bc34a; border-bottom: 1px solid var(--line); }
     .tactic-header-row { display: flex; align-items: center; padding: 8px 15px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); font-weight: bold; }
-    .tactic-row { display: flex; align-items: flex-start; padding: 10px 15px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background 0.2s; }
+    .tactic-row { display: flex; align-items: flex-start; padding: 10px 15px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background 0.1s; }
     .tactic-row:last-child { border-bottom: none; }
     .tactic-row:hover { background: var(--card-hover); }
     .col-name { width: 100px; flex-shrink: 0; font-weight: 700; font-size: 14px; color: var(--text); }
@@ -84,7 +84,7 @@
     .tag-item { font-size: 12px; color: var(--success); border: 1px solid var(--success); padding: 1px 4px; border-radius: 4px; display: inline-block; }
 
     /* 通用按钮与表单 */
-    .btn { background: #26262e; color: var(--text); border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; transition: all 0.15s; font-family: inherit; font-weight: 600; }
+    .btn { background: #26262e; color: var(--text); border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer; transition: background 0.1s; font-family: inherit; font-weight: 600; }
     .btn:hover { border-color: #66667a; background: #2f2f38; }
     .btn.primary { background: var(--accent); border-color: var(--accent); color: #001014; }
     .btn.primary:hover { filter: brightness(1.1); }
@@ -98,9 +98,9 @@
     .radio { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #ccc; cursor: pointer; }
 
     /* 弹窗与抽屉 */
-    .mask { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 50; }
+    .mask { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 50; }
     .mask.show { opacity: 1; pointer-events: auto; }
-    .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: 460px; max-width: 92vw; background: #141418; border-left: 1px solid var(--line-strong); display: flex; flex-direction: column; transform: translateX(105%); transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); z-index: 60; }
+    .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: 460px; max-width: 92vw; background: #141418; border-left: 1px solid var(--line-strong); display: flex; flex-direction: column; transform: translateX(105%); transition: transform 0.2s ease-out; z-index: 60; }
     .drawer.open { transform: translateX(0); }
     .drawer-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); }
     .drawer-title { font-size: 18px; font-weight: 800; color: var(--text); }
@@ -130,8 +130,7 @@
     .lib-content h4 { margin: 0 0 16px; color: var(--accent); }
     
     .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .skill-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px 12px; position: relative; display: flex; flex-direction: column; gap: 6px; transition: border-color 0.2s; }
-    .skill-card:hover { border-color: var(--accent); }
+    .skill-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px 12px; position: relative; display: flex; flex-direction: column; gap: 6px; }
     .skill-card .s-name { font-size: 14px; font-weight: 700; color: var(--warn); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding-right: 40px;}
     .skill-card .s-item { font-size: 12px; color: var(--success); }
     .skill-card .s-timing { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; }
@@ -141,7 +140,7 @@
     .skill-card .s-tag-self { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; background: rgba(192, 132, 252, 0.15); color: var(--purple); border: 1px solid rgba(192, 132, 252, 0.3); }
     .skill-card .btn-del-skill { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; }
     .skill-card:hover .btn-del-skill { opacity: 1; }
-    .skill-card .btn-edit-skill { position: absolute; top: 8px; right: 8px; background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 14px; opacity: 0.5; transition: opacity 0.2s; }
+    .skill-card .btn-edit-skill { position: absolute; top: 8px; right: 8px; background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 14px; opacity: 0.5; }
     .skill-card:hover .btn-edit-skill { opacity: 1; }
 
     .add-skill-form { margin-top: 20px; border-top: 1px dashed var(--line-strong); padding-top: 20px; display: flex; flex-direction: column; gap: 10px; }
@@ -307,7 +306,7 @@
           <label class="radio" style="color:var(--purple);"><input type="checkbox" id="editSkillSelfOnly"> 仅自身可用</label>
         </div>
         <div style="text-align:right; margin-top:20px;">
-          <button class="btn primary" id="saveEditSkillBtn">保存修改</button>
+          <button class="btn primary" id="saveEditSkillBtn" data-hotkey="true">保存修改</button>
         </div>
       </div>
     </div>
@@ -334,7 +333,7 @@
   <div id="toastBox"></div>
 
   <script>
-    const STORAGE_KEY = 'wod-tactics-board-v48'; 
+    const STORAGE_KEY = 'wod-tactics-board-v50'; 
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
@@ -352,7 +351,15 @@
 
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    // 极简数据兼容
+    // 核心性能优化：防抖存储
+    let saveTimer = null;
+    function save() { 
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); 
+      }, 300); // 停顿 300ms 后才真正写入
+    }
+
     function cleanData(d) {
       if (!d.library) d.library = {};
       if (!d.phaseNotes) d.phaseNotes = {};
@@ -385,8 +392,6 @@
       $('dungeonName').value = db.dungeonName;
       if (!db.activePhases.includes(currentPhase)) currentPhase = db.activePhases[0] || 'F1';
     }
-
-    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
 
     function toast(msg, type) {
       const el = document.createElement('div');
@@ -548,7 +553,7 @@
         `;
         $('drawerFooter').innerHTML = `
           <button class="btn danger" id="deletePlayerBtn" style="display:${currentPlayer?'block':'none'};">移除队员</button>
-          <button class="btn primary block" id="saveBtn">保存部署</button>
+          <button class="btn primary block" id="saveBtn" data-hotkey="true">保存部署 [Enter]</button>
         `;
         return;
       }
@@ -594,7 +599,7 @@
               ${isSelfOnly ? `<span style="font-size:12px; color:var(--purple);">此技能仅能对自身使用</span>` : ''}
             </div>
             <div class="field"><label>备注</label><input type="text" data-afield="remark" value="${esc(currentActionDraft.remark)}"></div>
-            <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="btn" id="cancelAddBtn">取消</button><button class="btn primary" id="confirmAddBtn">确认</button></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="btn" id="cancelAddBtn">取消</button><button class="btn primary" id="confirmAddBtn" data-hotkey="true">确认 [Enter]</button></div>
           </div>
         `;
       } else {
@@ -602,7 +607,7 @@
       }
 
       $('drawerBody').innerHTML = `<div style="margin-bottom:20px;"><h4 style="color:var(--text);font-size:14px;margin:0 0 12px 0;">已配置 (${actionsDraft.length})</h4>${listHtml}</div>${formHtml}`;
-      $('drawerFooter').innerHTML = `<button class="btn primary block" id="btn-save-tactics">保存战术</button>`;
+      $('drawerFooter').innerHTML = `<button class="btn primary block" id="btn-save-tactics" data-hotkey="true">保存战术 [Enter]</button>`;
     }
 
     // ================= 战术库渲染 =================
@@ -612,7 +617,7 @@
         $('libBody').innerHTML = `
           <div style="flex:1;padding:20px;overflow-y:auto;">
             <div class="roster-grid" style="margin-bottom:20px;">${db.roster.map(r => `<div class="roster-card"><button class="btn-del-roster" data-del-roster="${r.id}">×</button><div class="r-name">${esc(r.name)}</div><div class="r-class">${esc(r.class)}</div></div>`).join('') || '空'}</div>
-            <div class="add-skill-form"><h4>添加队员</h4><div class="add-skill-row"><div class="field" style="flex:1;margin:0;"><input type="text" id="newRosterName" placeholder="名字"></div><div class="field" style="flex:1;margin:0;"><select id="newRosterClass">${CLASS_NAMES.map(c => `<option value="${c}">${c}</option>`).join('')}</select></div></div><button class="btn primary" id="addRosterBtn">录入</button></div>
+            <div class="add-skill-form"><h4>添加队员</h4><div class="add-skill-row"><div class="field" style="flex:1;margin:0;"><input type="text" id="newRosterName" placeholder="名字"></div><div class="field" style="flex:1;margin:0;"><select id="newRosterClass">${CLASS_NAMES.map(c => `<option value="${c}">${c}</option>`).join('')}</select></div></div><button class="btn primary" id="addRosterBtn" data-hotkey="true">录入 [Enter]</button></div>
           </div>`;
       } 
       else if (currentLibTab === 'skills') {
@@ -651,7 +656,7 @@
                 </div>
               </div>
               <div class="add-skill-row" id="newItemRow" style="display:none;"><input type="text" id="newSkillItem" placeholder="物品名(多个逗号隔开)"></div>
-              <button class="btn primary" id="addSkillBtn" style="margin-top:10px;">录入</button>
+              <button class="btn primary" id="addSkillBtn" data-hotkey="true">录入 [Enter]</button>
             </div>
           </div>`;
         $('newSkillDep').onchange = e => $('newItemRow').style.display = e.target.value === 'none' ? 'none' : 'flex';
@@ -663,7 +668,7 @@
             <div class="field" style="margin-bottom:20px;">
               <label>你的署名 (用于生成图片水印)</label>
               <input type="text" id="authorInput" value="${esc(db.authorName || '')}" placeholder="例如：张三">
-              <button class="btn block" id="saveAuthorBtn" style="margin-top:10px;">保存署名</button>
+              <button class="btn block" id="saveAuthorBtn" style="margin-top:10px;" data-hotkey="true">保存署名 [Enter]</button>
             </div>
             <button class="btn primary block" id="genCodeBtn" style="margin:10px 0;">📋 生成全量数据备份</button>
             <textarea id="dataCodeText" rows="6" placeholder="生成或粘贴数据备份..." style="font-family:monospace;"></textarea>
@@ -684,7 +689,7 @@
     $('closeEditSkillBtn').onclick = () => $('editSkillMask').classList.remove('show');
     $('closePhaseBtn').onclick = () => $('phaseMask').classList.remove('show');
     
-    // 2. 排兵布阵事件 (事件委托)
+    // 2. 排兵布阵事件
     $('deploySandbox').addEventListener('click', e => {
       const del = e.target.closest('.del-btn');
       if (del) {
@@ -888,6 +893,35 @@
         }).catch(err => { console.error(err); toast('生成失败，请重试', 'error'); });
       }, 300);
     };
+
+    // ================= 9. 快捷键监听引擎 (Enter / Space) =================
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
+          if ($('drawer').classList.contains('open')) {
+            const btn = $('drawer').querySelector('[data-hotkey="true"]');
+            if (btn) { btn.click(); e.preventDefault(); }
+          } else if ($('libMask').classList.contains('show')) {
+            const btn = $('libBody').querySelector('[data-hotkey="true"]');
+            if (btn) { btn.click(); e.preventDefault(); }
+          } else if ($('editSkillMask').classList.contains('show')) {
+            $('saveEditSkillBtn').click(); e.preventDefault();
+          }
+        }
+      }
+      
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        let btn = null;
+        if ($('drawer').classList.contains('open')) btn = $('drawer').querySelector('[data-hotkey="true"]');
+        else if ($('libMask').classList.contains('show')) btn = $('libBody').querySelector('[data-hotkey="true"]');
+        else if ($('editSkillMask').classList.contains('show')) btn = $('saveEditSkillBtn');
+        
+        if (btn) {
+          btn.click();
+          e.preventDefault();
+        }
+      }
+    });
 
     // ================= 启动 =================
     load();
