@@ -10,7 +10,7 @@
       --bg: #0f0f13; --panel: #17171c; --card: #222229; --card-hover: #2a2a33;
       --line: #2f2f38; --line-strong: #454552; --text: #ececf1; --muted: #8b8b9a;
       --accent: #00d9ff; --accent-dim: rgba(0, 217, 255, 0.12);
-      --warn: #ffc857; --danger: #ff5c5c; --success: #4ade80;
+      --warn: #ffc857; --danger: #ff5c5c; --success: #4ade80; --purple: #c084fc;
     }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
@@ -129,11 +129,12 @@
     
     .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .skill-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px 12px; position: relative; display: flex; flex-direction: column; gap: 6px; }
-    .skill-card .s-name { font-size: 14px; font-weight: 700; color: var(--warn); display: flex; justify-content: space-between; align-items: center;}
+    .skill-card .s-name { font-size: 14px; font-weight: 700; color: var(--warn); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;}
     .skill-card .s-item { font-size: 12px; color: var(--success); }
     .skill-card .s-timing { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; }
     .skill-card .s-timing.all { background: #333; color: #ddd; }
     .skill-card .s-timing.pm { background: rgba(0, 217, 255, 0.15); color: var(--accent); border: 1px solid rgba(0, 217, 255, 0.3); }
+    .skill-card .s-tag-self { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; background: rgba(192, 132, 252, 0.15); color: var(--purple); border: 1px solid rgba(192, 132, 252, 0.3); }
     .skill-card .btn-del-skill { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; }
     .skill-card:hover .btn-del-skill { opacity: 1; }
     .add-skill-form { margin-top: 20px; border-top: 1px dashed var(--line-strong); padding-top: 20px; display: flex; flex-direction: column; gap: 10px; }
@@ -295,7 +296,7 @@
   <div id="toastBox"></div>
 
   <script>
-    const STORAGE_KEY = 'wo-tactics-board-v42'; // 升级版本
+    const STORAGE_KEY = 'wo-tactics-board-v43'; // 升级版本
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
@@ -329,6 +330,7 @@
           d.library[c].forEach(s => {
             if (s.itemName && !s.items) { s.items = [s.itemName]; delete s.itemName; }
             if (!s.timing) s.timing = ['AM', 'PM']; // 兼容旧数据，默认全可放
+            if (s.selfOnly === undefined) s.selfOnly = false; // 兼容旧数据
           });
         });
       }
@@ -596,8 +598,9 @@
           itemHtml = `<div class="field"><label>${selSk.depType==='required'?'强制消耗':'可选物品'}</label><select data-afield="item">${selSk.depType==='optional'?'<option value="">-- 不附加 --</option>':''}${selSk.items.map(it => `<option value="${it}"${currentActionDraft.item===it?' selected':''}>${esc(it)}</option>`).join('')}</select></div>`;
         }
         
-        // 判断是否禁用 AM
+        // 判断是否禁用 AM 和 目标选择
         const isPmOnly = selSk && selSk.timing && !selSk.timing.includes('AM');
+        const isSelfOnly = selSk && selSk.selfOnly;
         
         formHtml = `
           <div style="background:#1c1c23;padding:15px;border-radius:6px;border:1px solid var(--accent);margin-top:20px;">
@@ -612,7 +615,13 @@
             </div>
             <div class="field"><label>技能</label><select data-afield="skillId"><option value="">--选择--</option>${skills.map(s => `<option value="${s.id}"${currentActionDraft.skillId===s.id?' selected':''}>${esc(s.name)}</option>`).join('')}</select></div>
             ${itemHtml}
-            <div class="field"><label>使用位置</label><select data-afield="target">${[...POSITIONS, '自身'].map(t => `<option value="${t}"${currentActionDraft.target===t?' selected':''}>${esc(t)}</option>`).join('')}</select></div>
+            <div class="field">
+              <label>使用位置</label>
+              <select data-afield="target" ${isSelfOnly ? 'disabled' : ''}>
+                ${[...POSITIONS, '自身'].map(t => `<option value="${t}"${(isSelfOnly ? '自身' : currentActionDraft.target)===t?' selected':''}>${esc(t)}</option>`).join('')}
+              </select>
+              ${isSelfOnly ? `<span style="font-size:12px; color:var(--purple);">此技能仅能对自身使用</span>` : ''}
+            </div>
             <div class="field"><label>备注</label><input type="text" data-afield="remark" value="${esc(currentActionDraft.remark)}"></div>
             <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="btn" id="cancelAddBtn">取消</button><button class="btn primary" id="confirmAddBtn">确认</button></div>
           </div>
@@ -637,6 +646,7 @@
         if (sk.timing && !sk.timing.includes(currentActionDraft.timing)) {
           return toast(`【${sk.name}】不支持在 ${currentActionDraft.timing} 释放！`, 'error');
         }
+        if (sk.selfOnly) currentActionDraft.target = '自身'; // 兜底强制
         actionsDraft.push({ ...currentActionDraft }); isAddingAction = false; renderDrawerBody();
       }
       if (t.classList.contains('btn-del-action')) {
@@ -655,6 +665,8 @@
             if (sk.depType === 'required' && sk.items?.length === 1) currentActionDraft.item = sk.items[0];
             // 联动：如果只能PM，强制变为PM
             if (sk.timing && !sk.timing.includes('AM')) currentActionDraft.timing = 'PM';
+            // 联动：如果仅自身，强制变为自身
+            if (sk.selfOnly) currentActionDraft.target = '自身';
           }
           renderDrawerBody();
         } else if (f) currentActionDraft[f] = e.target.value;
@@ -673,6 +685,7 @@
         if (isAddingAction && currentActionDraft.skillId) {
           const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
           if (sk.timing && !sk.timing.includes(currentActionDraft.timing)) return toast('技能时机不符', 'error');
+          if (sk.selfOnly) currentActionDraft.target = '自身';
           actionsDraft.push({ ...currentActionDraft });
         }
         if (!db.actions[currentPhase]) db.actions[currentPhase] = {};
@@ -710,9 +723,10 @@
                 } else {
                   timingTag = `<span class="s-timing pm">仅PM</span>`;
                 }
+                let selfTag = s.selfOnly ? `<span class="s-tag-self">[自身]</span>` : '';
                 return `<div class="skill-card">
                   <button class="btn-del-skill" data-del-skill="${s.id}">×</button>
-                  <div class="s-name"><span>${esc(s.name)}</span> ${timingTag}</div>
+                  <div class="s-name"><span>${esc(s.name)}</span> <div style="display:flex;gap:4px;">${timingTag}${selfTag}</div></div>
                   ${s.items?.length ? `<div class="s-item">${s.depType==='required'?'🔒':'🎲'} ${esc(s.items.join('/'))}</div>` : ''}
                 </div>`;
               }).join('') || '空'}
@@ -721,11 +735,14 @@
               <h4>添加技能</h4>
               <div class="add-skill-row"><div class="field" style="flex:1;margin:0;"><input type="text" id="newSkillName" placeholder="技能名称"></div><div class="field" style="flex:1;margin:0;"><select id="newSkillDep"><option value="none">无依赖</option><option value="required">强依赖</option><option value="optional">弱依赖</option></select></div></div>
               
-              <div class="field" style="margin-top:10px;">
-                <label>可用时机</label>
-                <div class="radio-row">
-                  <label class="radio"><input type="checkbox" id="newSkillAM" checked> 回合前(AM)</label>
-                  <label class="radio"><input type="checkbox" id="newSkillPM" checked> 回合中(PM)</label>
+              <div class="field" style="margin-top:10px; flex-direction:row; gap:20px; align-items:center;">
+                <div style="display:flex; gap:10px; align-items:center;">
+                  <label style="font-size:12px; color:var(--muted);">可用时机:</label>
+                  <label class="radio"><input type="checkbox" id="newSkillAM" checked> AM</label>
+                  <label class="radio"><input type="checkbox" id="newSkillPM" checked> PM</label>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                  <label class="radio" style="color:var(--purple);"><input type="checkbox" id="newSkillSelfOnly"> 仅自身可用</label>
                 </div>
               </div>
 
@@ -738,7 +755,7 @@
         
         $('addSkillBtn').onclick = () => {
           const n = $('newSkillName').value.trim(); const dep = $('newSkillDep').value; const it = $('newSkillItem').value.trim();
-          const isAM = $('newSkillAM').checked; const isPM = $('newSkillPM').checked;
+          const isAM = $('newSkillAM').checked; const isPM = $('newSkillPM').checked; const isSelf = $('newSkillSelfOnly').checked;
           
           if (!n) return toast('请输入名称', 'warn'); 
           if (dep === 'required' && !it) return toast('强依赖必须填物品', 'warn');
@@ -749,7 +766,7 @@
           if (isAM) timingArr.push('AM');
           if (isPM) timingArr.push('PM');
 
-          db.library[currentLibClass].push({ id: Date.now().toString(), name: n, depType: dep, items, timing: timingArr });
+          db.library[currentLibClass].push({ id: Date.now().toString(), name: n, depType: dep, items, timing: timingArr, selfOnly: isSelf });
           save(); renderLib(); toast('已录入', 'ok');
         };
         $('libBody').querySelectorAll('[data-del-skill]').forEach(b => b.onclick = e => { db.library[currentLibClass] = db.library[currentLibClass].filter(s => s.id !== e.target.dataset.delSkill); save(); renderLib(); });
