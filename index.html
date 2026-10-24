@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WO 战术板</title>
-  <!-- 引入极速压缩库 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+  <!-- 仅保留截图库，删除了没用的压缩库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
       --bg: #0f0f13; --panel: #17171c; --card: #222229; --card-hover: #2a2a33;
@@ -17,13 +17,12 @@
     [hidden] { display: none !important; }
     body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     
-    /* 顶部栏 */
+    /* ================= 页面常规 UI 样式 ================= */
     .top-bar { display: flex; flex-direction: column; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: rgba(15, 15, 19, 0.96); z-index: 20; flex-shrink: 0; }
     .title-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .title-row h1 { margin: 0; font-size: 20px; letter-spacing: 1px; color: var(--accent); white-space: nowrap; }
     .dungeon-input { background: transparent; border: 1px dashed var(--line-strong); color: #fff; font-size: 16px; font-weight: bold; padding: 6px 12px; border-radius: 6px; outline: none; width: 200px; transition: border-color 0.2s; }
     .dungeon-input:focus { border-color: var(--accent); }
-    .dungeon-input:disabled { border: none; background: transparent; cursor: default; }
     
     .view-tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--line); padding: 0 20px; flex-shrink: 0; background: var(--panel); }
     .view-tab { padding: 12px 20px; background: transparent; border: none; border-bottom: 3px solid transparent; color: var(--muted); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
@@ -32,36 +31,23 @@
 
     .main-content { flex: 1; overflow: hidden; position: relative; }
 
-    /* 视图1：正方形大沙盘 */
+    /* 视图1：大沙盘 */
     #viewDeploy { height: 100%; display: flex; padding: 20px; overflow: hidden; }
     .deploy-center { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
-    
     .cross-container { 
-      display: grid;
-      grid-template-columns: 1fr 2fr 1fr;
-      grid-template-rows: 1fr 2fr 1fr;
-      gap: 15px;
-      width: 100%;
-      max-width: 1000px;
-      height: 80vh; 
-      max-height: 900px;
+      display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 15px; 
+      width: 100%; max-width: 1000px; height: 80vh; max-height: 900px;
     }
-    
     .position-group { 
-      border: 2px solid #4CAF50; 
-      border-radius: 10px; 
-      background: var(--panel); 
+      border: 2px solid #4CAF50; border-radius: 10px; background: var(--panel); 
       display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; 
-      align-content: flex-start; justify-content: center;
-      position: relative; padding: 45px 15px 15px 15px; 
-      overflow-y: auto;
+      align-content: flex-start; justify-content: center; position: relative; padding: 45px 15px 15px 15px; overflow-y: auto;
     }
     .pos-front { grid-column: 1 / -1; grid-row: 1; }
     .pos-left { grid-column: 1; grid-row: 2; }
     .pos-middle { grid-column: 2; grid-row: 2; border-color: var(--accent); }
     .pos-right { grid-column: 3; grid-row: 2; }
     .pos-back { grid-column: 1 / -1; grid-row: 3; border-color: #FF9800; }
-
     .position-group h3 { position: absolute; top: 12px; left: 0; width: 100%; text-align: center; color: #8bc34a; margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 2px; }
     .pos-back h3 { color: #FF9800; }
     .pos-middle h3 { color: var(--accent); }
@@ -70,9 +56,8 @@
     .player-card:hover { border-color: var(--accent); background: var(--card-hover); transform: translateY(-2px); }
     .player-card .name { font-size: 1em; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .player-card .class { font-size: 0.75em; color: var(--muted); margin-top: 4px; }
-    .player-card .del-btn { position: absolute; top: -8px; right: -8px; color: #fff; background: var(--danger); border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; padding: 0; z-index: 10; }
+    .player-card .del-btn { position: absolute; top: -8px; right: -8px; color: #fff; background: var(--danger); border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; z-index: 10; }
     .player-card:hover .del-btn { opacity: 1; }
-
     .add-btn { background: rgba(255,255,255,0.03); border: 1px dashed var(--line-strong); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: all 0.2s; font-size: 24px; display: flex; align-items: center; justify-content: center; margin: auto; }
     .add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); transform: scale(1.1); }
 
@@ -119,7 +104,6 @@
     .field > label { font-weight: 700; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
     .radio-row { display: flex; gap: 16px; }
     .radio { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #ccc; cursor: pointer; }
-    .radio input { accent-color: var(--accent); }
 
     .mask { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 50; }
     .mask.show { opacity: 1; pointer-events: auto; }
@@ -170,8 +154,64 @@
     .roster-card .btn-del-roster { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; }
     .roster-card:hover .btn-del-roster { opacity: 1; }
 
-    #shareModal { width: 600px; height: auto; max-height: 90vh; }
-    #shareModal .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+    /* 生成图片弹窗 */
+    #imagePreviewMask .modal { width: 900px; height: 90vh; background: #1a1a1f; }
+    #imagePreviewBody { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #0f0f13;}
+    #imagePreviewBody img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+    /* ================= 极其高级的战术长图排版 ================= */
+    #share-view {
+      position: absolute; top: -9999px; left: -9999px;
+      width: 900px;
+      background: #121218;
+      color: #fff;
+      padding: 40px;
+      box-sizing: border-box;
+      display: flex; flex-direction: column; gap: 30px;
+    }
+    
+    /* 顶部标题栏 */
+    .sv-header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.05); }
+    .sv-title { font-size: 42px; font-weight: bold; color: #00d9ff; margin: 0 0 10px 0; letter-spacing: 4px; text-shadow: 0 0 20px rgba(0, 217, 255, 0.3); }
+    .sv-subtitle { font-size: 16px; color: #8b8b9a; letter-spacing: 2px; }
+    
+    /* 模块标题 */
+    .sv-section-title { font-size: 22px; color: #fff; margin: 0 0 20px 0; border-left: 6px solid #00d9ff; padding-left: 15px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+    .sv-section-title span { font-size: 14px; color: #666; font-weight: normal; }
+    
+    /* 站位卡片区 */
+    .sv-deploy-box { display: flex; flex-direction: column; gap: 15px; background: #1a1a24; padding: 25px; border-radius: 12px; border: 1px solid #2f2f38; box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
+    .sv-pos-row { display: flex; align-items: center; }
+    .sv-pos-label { width: 80px; font-weight: bold; color: #8bc34a; font-size: 18px; flex-shrink: 0; }
+    .sv-pos-players { display: flex; flex-wrap: wrap; gap: 15px; }
+    .sv-player-tag { background: linear-gradient(180deg, #2a2a35 0%, #1f1f28 100%); border: 1px solid #454552; padding: 8px 16px; border-radius: 8px; font-size: 16px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+    .sv-player-tag span { font-size: 13px; color: #888; }
+    
+    /* 战术表格 */
+    .sv-tactic-card { background: #1a1a24; border-radius: 12px; border: 1px solid #2f2f38; overflow: hidden; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .sv-card-header { background: #222230; padding: 15px 25px; font-size: 20px; font-weight: bold; color: #ffc857; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+    .sv-tactic-table { width: 100%; border-collapse: collapse; }
+    .sv-tactic-table th { background: #15151b; color: #8b8b9a; font-size: 15px; font-weight: normal; text-align: left; padding: 15px 25px; border-bottom: 1px solid #333; }
+    .sv-tactic-table td { padding: 15px 25px; font-size: 16px; border-bottom: 1px solid #2a2a35; color: #ddd; }
+    .sv-tactic-table tr:last-child td { border-bottom: none; }
+    
+    .sv-td-name { font-weight: bold; color: #fff; font-size: 18px; width: 120px; }
+    .sv-td-class { color: #888; width: 100px; }
+    .sv-td-skill { width: 200px; }
+    .sv-td-item { width: 150px; }
+    .sv-td-target { width: 100px; color: #00d9ff; font-weight: bold; }
+    .sv-td-remark { color: #888; font-size: 14px; }
+    
+    .sv-badge { background: #333; color: #fff; border-radius: 4px; padding: 2px 8px; font-size: 13px; font-weight: bold; margin-right: 8px; }
+    .sv-badge.am { background: rgba(255, 200, 87, 0.2); color: #ffc857; }
+    .sv-badge.pm { background: rgba(0, 217, 255, 0.2); color: #00d9ff; }
+    
+    .sv-skill-text { color: #ffc857; font-weight: bold; }
+    .sv-item-text { color: #4ade80; border: 1px solid #4ade80; padding: 2px 8px; border-radius: 4px; font-size: 14px; }
+
+    /* 底部水印 */
+    .sv-footer { text-align: center; color: #555; font-size: 15px; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #333; letter-spacing: 1px; }
+    .sv-footer span { color: #00d9ff; }
 
     #toastBox { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 120; pointer-events: none; }
     .toast { padding: 12px 24px; border-radius: 8px; background: #1c1c23; border: 1px solid var(--line-strong); font-size: 14px; font-weight: 600; animation: toastIn 0.2s ease; }
@@ -189,10 +229,8 @@
         <input type="text" id="dungeonName" class="dungeon-input" placeholder="输入副本名称..." value="未命名副本">
       </div>
       <div style="display:flex; gap:10px;" id="adminToolbar">
-        <button class="btn" id="shareBtn" style="color:var(--accent); border-color:var(--accent);">🔗 生成分享链接</button>
-        <button class="btn" id="exportBtn">📤 全量导出备份</button>
-        <button class="btn" id="importBtn">📥 全量导入备份</button>
-        <input type="file" id="importFile" style="display:none;" accept=".json">
+        <!-- 核心按钮：生成图片 -->
+        <button class="btn primary" id="shareImageBtn" style="font-size: 14px; padding: 8px 16px; box-shadow: 0 0 10px rgba(0,217,255,0.3);">📸 生成战术长图</button>
         <button class="btn" id="openLibBtn">⚙️ 战术库配置</button>
         <button class="btn" id="resetBtn" style="color:var(--danger); border-color:var(--danger);">清空数据</button>
       </div>
@@ -208,7 +246,6 @@
     <div id="viewDeploy" hidden>
       <div class="deploy-center"><div class="cross-container" id="deploySandbox"></div></div>
     </div>
-
     <div id="viewTactics" hidden>
       <div class="phase-control-bar">
         <div class="phase-list" id="phaseBar"></div>
@@ -218,6 +255,29 @@
     </div>
   </main>
 
+  <!-- 隐藏的分享视图 (用于截图) -->
+  <div id="share-view">
+    <div class="sv-header">
+      <h1 class="sv-title" id="sv-dungeonName">未命名副本</h1>
+      <div class="sv-subtitle">WO 战术指挥板 · 团队行动方案</div>
+    </div>
+    
+    <div>
+      <h2 class="sv-section-title">📌 阵容部署 <span>Formation</span></h2>
+      <div class="sv-deploy-box" id="sv-deploy-box"></div>
+    </div>
+
+    <div>
+      <h2 class="sv-section-title">⚔️ 阶段战术 <span>Tactics</span></h2>
+      <div id="sv-tactics-container"></div>
+    </div>
+
+    <div class="sv-footer">
+      由 <span id="sv-author">无名指挥官</span> 制作 | 专属战术板：<span id="sv-url">https://noc-github.io</span>
+    </div>
+  </div>
+
+  <!-- 抽屉与弹窗 -->
   <div class="mask" id="drawerMask"></div>
   <aside class="drawer" id="drawer">
     <div class="drawer-head">
@@ -240,17 +300,14 @@
     </div>
   </div>
 
-  <div class="modal-mask" id="shareMask">
-    <div class="modal" id="shareModal">
-      <div class="modal-head"><h3>生成战术分享链接</h3><button class="icon-btn" id="closeShareBtn">&times;</button></div>
-      <div class="modal-body">
-        <p style="font-size:14px; color:var(--text); line-height:1.6; margin:0;">
-          请点击下方按钮复制<b>专属分享链接</b>。<br>
-          发给队友后，队友用浏览器打开链接，即可<b>直接查看战术（自动进入只读模式）</b>。
-        </p>
-        <textarea id="shareCodeText" rows="4" style="font-family:monospace; font-size:12px; color:var(--accent); background:#0f0f13;" readonly placeholder="链接生成中..."></textarea>
-        <button class="btn primary block" id="copyShareCodeBtn" style="padding:12px; font-size:15px;">📋 一键复制完整分享链接</button>
+  <!-- 图片预览弹窗 -->
+  <div class="modal-mask" id="imagePreviewMask">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>战术长图生成成功 (长按图片或右键保存)</h3>
+        <button class="icon-btn" id="closeImageBtn">&times;</button>
       </div>
+      <div class="modal-body" id="imagePreviewBody"></div>
     </div>
   </div>
 
@@ -265,15 +322,18 @@
   <div id="toastBox"></div>
 
   <script>
-    const STORAGE_KEY = 'wo-tactics-board-v36';
+    const STORAGE_KEY = 'wo-tactics-board-v38';
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
 
-    let db = { dungeonName: '未命名副本', activePhases: ['F1', 'F2', 'F3'], roster: [], library: {}, players: [], actions: {} };
+    let db = { 
+      dungeonName: '未命名副本', authorName: '无名指挥官', activePhases: ['F1', 'F2', 'F3'], 
+      roster: [], library: {}, players: [], actions: {} 
+    };
     CLASS_NAMES.forEach(n => db.library[n] = []);
 
-    let isViewMode = false, currentView = 'deploy', currentPhase = 'F1', currentPlayer = null;
+    let currentView = 'deploy', currentPhase = 'F1', currentPlayer = null;
     let drawerMode = 'deploy', playerDraft = {}, actionsDraft = [], isAddingAction = false, currentActionDraft = {};
     let currentLibClass = CLASS_NAMES[0], currentLibTab = 'roster';
 
@@ -321,41 +381,19 @@
     }
 
     function load() {
-      const hash = new URLSearchParams(window.location.hash.substring(1)).get('data');
-      if (hash) {
-        isViewMode = true;
-        try { 
-          // 【核心修复】使用极速解压
-          const decompressed = LZString.decompressFromEncodedURIComponent(hash);
-          Object.assign(db, cleanData(JSON.parse(decompressed))); 
-          toast('🔗 只读模式已加载', 'ok'); 
-        } catch(e) { 
-          toast('分享链接损坏', 'error'); 
-          console.error(e);
-        }
-      } else {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) Object.assign(db, cleanData(JSON.parse(raw)));
-        } catch(e) {}
-      }
+      // 纯本地化，彻底移除 URL 解析
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) Object.assign(db, cleanData(JSON.parse(raw)));
+      } catch(e) {}
       
       CLASS_NAMES.forEach(n => { if (!Array.isArray(db.library[n])) db.library[n] = []; });
       $('dungeonName').value = db.dungeonName;
       if (!db.activePhases.includes(currentPhase)) currentPhase = db.activePhases[0] || 'F1';
-
-      if (isViewMode) {
-        $('adminToolbar').style.display = 'none';
-        $('phaseSettingsBtn').style.display = 'none';
-        $('dungeonName').disabled = true;
-        const st = document.createElement('style');
-        st.innerHTML = `.player-card,.tactic-row{pointer-events:none}.player-card .del-btn,.add-btn{display:none}`;
-        document.head.appendChild(st);
-      }
     }
 
     function save() {
-      if (!isViewMode) localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
     }
 
     function toast(msg, type) {
@@ -374,6 +412,7 @@
       if (view === 'deploy') renderDeploy(); else renderTactics();
     }
 
+    // ================= 编辑界面渲染 =================
     function renderDeploy() {
       deploySandbox.innerHTML = ['前', '左', '中', '右', '后'].map(pos => {
         const list = db.players.filter(p => p.position === pos);
@@ -435,8 +474,99 @@
       }).join('');
     }
 
+    // ================= 核心：超高级战术长图渲染 =================
+    function renderShareView() {
+      $('sv-dungeonName').textContent = db.dungeonName || '未命名副本';
+      $('sv-author').textContent = db.authorName || '无名指挥官';
+      $('sv-url').textContent = window.location.hostname || 'local';
+
+      // 1. 阵容部署（卡片化）
+      let deployHtml = '';
+      const posNames = { '前': '前排', '左': '左翼', '中': '中间', '右': '右翼', '后': '后排' };
+      ['前', '左', '中', '右', '后'].forEach(pos => {
+        const list = db.players.filter(p => p.position === pos);
+        if (list.length > 0) {
+          deployHtml += `
+            <div class="sv-pos-row">
+              <div class="sv-pos-label">${posNames[pos]}</div>
+              <div class="sv-pos-players">
+                ${list.map(p => `<div class="sv-player-tag">${esc(p.name)} <span>${esc(p.class)}</span></div>`).join('')}
+              </div>
+            </div>
+          `;
+        }
+      });
+      $('sv-deploy-box').innerHTML = deployHtml || '暂无人员';
+
+      // 2. 楼层战术（过滤空层，海报级表格）
+      let tacticsHtml = '';
+      db.activePhases.forEach(phase => {
+        const phaseActions = db.actions[phase] || {};
+        let rows = [];
+        db.players.forEach(p => {
+          const acts = phaseActions[p.id] || [];
+          acts.forEach(act => {
+            const sk = db.library[p.class]?.find(s => s.id === act.skillId);
+            rows.push({ name: p.name, class: p.class, timing: act.timing, skill: sk ? sk.name : '未知', item: act.item, target: act.target, remark: act.remark });
+          });
+        });
+
+        if (rows.length > 0) {
+          tacticsHtml += `
+            <div class="sv-tactic-card">
+              <div class="sv-card-header">阶段 ${phase}</div>
+              <table class="sv-tactic-table">
+                <thead>
+                  <tr><th style="width:120px;">队员</th><th style="width:100px;">职业</th><th style="width:200px;">技能</th><th style="width:150px;">物品</th><th style="width:100px;">位置</th><th>备注</th></tr>
+                </thead>
+                <tbody>
+                  ${rows.map(r => `
+                    <tr>
+                      <td class="sv-td-name">${esc(r.name)}</td>
+                      <td class="sv-td-class">${esc(r.class)}</td>
+                      <td class="sv-td-skill"><span class="sv-badge ${r.timing.toLowerCase()}">${r.timing}</span> <span class="sv-skill-text">${esc(r.skill)}</span></td>
+                      <td class="sv-td-item">${r.item ? `<span class="sv-item-text">${esc(r.item)}</span>` : '-'}</td>
+                      <td class="sv-td-target">${esc(r.target)}</td>
+                      <td class="sv-td-remark">${esc(r.remark || '')}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+      });
+      $('sv-tactics-container').innerHTML = tacticsHtml || '<div style="color:#666;font-size:16px;">目前没有任何战术配置。</div>';
+    }
+
+    $('shareImageBtn').onclick = () => {
+      renderShareView();
+      toast('正在生成高清长图，请稍候...', 'warn');
+      
+      setTimeout(() => {
+        const shareView = document.getElementById('share-view');
+        html2canvas(shareView, {
+          scale: 2, // 保证清晰度
+          useCORS: true,
+          backgroundColor: '#121218'
+        }).then(canvas => {
+          const imgData = canvas.toDataURL('image/png');
+          const img = document.createElement('img');
+          img.src = imgData;
+          const previewBody = document.getElementById('imagePreviewBody');
+          previewBody.innerHTML = '';
+          previewBody.appendChild(img);
+          $('imagePreviewMask').classList.add('show');
+        }).catch(err => {
+          console.error(err);
+          toast('生成失败，请重试', 'error');
+        });
+      }, 300);
+    };
+    $('closeImageBtn').onclick = () => $('imagePreviewMask').classList.remove('show');
+
+    // ================= 抽屉与基础弹窗逻辑 =================
     function openDrawer(player = null, position = null, mode = 'deploy') {
-      if (isViewMode) return;
       drawerMode = mode;
       if (mode === 'deploy') {
         isAddingAction = false;
@@ -579,6 +709,7 @@
       }
     });
 
+    // ================= 战术库配置 =================
     function renderLib() {
       document.querySelectorAll('.lib-tab').forEach(t => t.classList.toggle('active', t.dataset.libtab === currentLibTab));
       if (currentLibTab === 'roster') {
@@ -621,30 +752,27 @@
       else if (currentLibTab === 'data') {
         libBody.innerHTML = `
           <div style="flex:1;padding:20px;overflow-y:auto;">
-            <h4>资料库备份 (不含战术)</h4>
-            <button class="btn primary block" id="genCodeBtn" style="margin:10px 0;">📋 生成资料库代码</button>
-            <textarea id="dataCodeText" rows="6" placeholder="生成或粘贴资料库代码..." style="font-family:monospace;"></textarea>
-            <button class="btn block" id="restoreCodeBtn" style="margin-top:10px;color:var(--warn);border-color:var(--warn);">🔄 恢复数据 / 载入分享码</button>
+            <h4>资料库与全量备份</h4>
+            <div class="field" style="margin-bottom:20px;">
+              <label>你的署名 (用于生成图片水印)</label>
+              <input type="text" id="authorInput" value="${esc(db.authorName || '')}" placeholder="例如：张三">
+              <button class="btn block" id="saveAuthorBtn" style="margin-top:10px;">保存署名</button>
+            </div>
+            <button class="btn primary block" id="genCodeBtn" style="margin:10px 0;">📋 生成全量数据备份</button>
+            <textarea id="dataCodeText" rows="6" placeholder="生成或粘贴数据备份..." style="font-family:monospace;"></textarea>
+            <button class="btn block" id="restoreCodeBtn" style="margin-top:10px;color:var(--warn);border-color:var(--warn);">🔄 恢复全量数据</button>
           </div>`;
+        $('saveAuthorBtn').onclick = () => { db.authorName = $('authorInput').value.trim(); save(); toast('署名已保存', 'ok'); };
         $('genCodeBtn').onclick = () => {
-          const str = LZString.compressToEncodedURIComponent(JSON.stringify({ library: db.library, roster: db.roster }));
-          $('dataCodeText').value = str; $('dataCodeText').select(); document.execCommand('copy'); toast('资料库代码已复制', 'ok');
+          const str = btoa(encodeURIComponent(JSON.stringify(db)));
+          $('dataCodeText').value = str; $('dataCodeText').select(); document.execCommand('copy'); toast('备份代码已复制', 'ok');
         };
         $('restoreCodeBtn').onclick = () => {
           let code = $('dataCodeText').value.replace(/\s+/g, ''); if (!code) return toast('粘贴代码', 'warn');
           try {
-            let decompressed = '';
-            try { decompressed = LZString.decompressFromEncodedURIComponent(code); } catch(e) {}
-            if (!decompressed || !decompressed.startsWith('{')) decompressed = decodeURIComponent(atob(code)); // 兼容老版
-            
-            const parsed = cleanData(JSON.parse(decompressed));
-            if (parsed.players) { 
-              Object.assign(db, parsed); save(); toast('战术已载入', 'ok'); setTimeout(() => location.reload(), 1000);
-            } else { 
-              if (parsed.library) db.library = parsed.library;
-              if (parsed.roster?.length) db.roster = parsed.roster;
-              save(); toast('资料库恢复成功', 'ok'); setTimeout(() => location.reload(), 1000);
-            }
+            const parsed = cleanData(JSON.parse(decodeURIComponent(atob(code))));
+            Object.assign(db, parsed);
+            save(); toast('恢复成功', 'ok'); setTimeout(() => location.reload(), 1000);
           } catch(e) { toast('代码损坏', 'error'); }
         };
       }
@@ -659,7 +787,6 @@
     drawerMask.onclick = closeDrawer;
 
     deploySandbox.onclick = e => {
-      if (isViewMode) return;
       const del = e.target.closest('.del-btn');
       if (del) {
         e.stopPropagation(); const id = del.dataset.del; const p = db.players.find(x => x.id === id);
@@ -676,7 +803,6 @@
     };
 
     tacticList.onclick = e => {
-      if (isViewMode) return;
       const row = e.target.closest('.tactic-row');
       if (row) openDrawer(db.players.find(p => p.id === row.dataset.id), null, 'tactic');
     };
@@ -695,44 +821,7 @@
     };
 
     $('dungeonName').oninput = e => { db.dungeonName = e.target.value; save(); };
-    $('resetBtn').onclick = () => { if(confirm('确定清空？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
-    
-    // 【核心更新】极速压缩生成分享链接
-    $('shareBtn').onclick = () => {
-      const usedC = new Set(db.players.map(p => p.class)); const slimLib = {};
-      usedC.forEach(c => { if (db.library[c]) slimLib[c] = db.library[c]; });
-      const dataToShare = { dungeonName: db.dungeonName, activePhases: db.activePhases, players: db.players, actions: db.actions, library: slimLib };
-      
-      // 使用极速压缩算法，长度减少 70%
-      const str = LZString.compressToEncodedURIComponent(JSON.stringify(dataToShare));
-      
-      const baseUrl = window.location.origin + window.location.pathname;
-      const shareUrl = `${baseUrl}#data=${str}`;
-      
-      $('shareCodeText').value = shareUrl; 
-      $('shareMask').classList.add('show');
-    };
-    
-    $('copyShareCodeBtn').onclick = () => { 
-      $('shareCodeText').select(); 
-      document.execCommand('copy'); 
-      toast('✅ 链接已复制！发给队友即可直接打开', 'ok'); 
-      $('shareMask').classList.remove('show'); 
-    };
-    $('closeShareBtn').onclick = () => $('shareMask').classList.remove('show');
-
-    $('exportBtn').onclick = () => {
-      const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
-      a.download = (db.dungeonName || '战术板') + '_备份.json'; a.click();
-    };
-    $('importBtn').onclick = () => $('importFile').click();
-    $('importFile').onchange = e => {
-      const f = e.target.files[0]; if (!f) return;
-      const r = new FileReader(); r.onload = ev => {
-        try { Object.assign(db, cleanData(JSON.parse(ev.target.result))); save(); toast('导入成功', 'ok'); setTimeout(() => location.reload(), 1000); } 
-        catch(err) { toast('文件错误', 'error'); }
-      }; r.readAsText(f);
-    };
+    $('resetBtn').onclick = () => { if(confirm('确定清空所有内容吗？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
 
     load();
     switchView('deploy');
