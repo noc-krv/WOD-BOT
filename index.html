@@ -92,7 +92,7 @@
     input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
     .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
     .field > label { font-weight: 700; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .radio-row { display: flex; gap: 16px; }
+    .radio-row { display: flex; gap: 16px; align-items: center; }
     .radio { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #ccc; cursor: pointer; }
 
     /* 弹窗与抽屉 */
@@ -126,25 +126,31 @@
     .lib-class-btn.active { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
     .lib-content { flex: 1; padding: 20px; overflow-y: auto; }
     .lib-content h4 { margin: 0 0 16px; color: var(--accent); }
+    
     .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .skill-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px 12px; position: relative; display: flex; flex-direction: column; gap: 6px; }
-    .skill-card .s-name { font-size: 14px; font-weight: 700; color: var(--warn); }
+    .skill-card .s-name { font-size: 14px; font-weight: 700; color: var(--warn); display: flex; justify-content: space-between; align-items: center;}
     .skill-card .s-item { font-size: 12px; color: var(--success); }
+    .skill-card .s-timing { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; }
+    .skill-card .s-timing.all { background: #333; color: #ddd; }
+    .skill-card .s-timing.pm { background: rgba(0, 217, 255, 0.15); color: var(--accent); border: 1px solid rgba(0, 217, 255, 0.3); }
     .skill-card .btn-del-skill { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; }
     .skill-card:hover .btn-del-skill { opacity: 1; }
     .add-skill-form { margin-top: 20px; border-top: 1px dashed var(--line-strong); padding-top: 20px; display: flex; flex-direction: column; gap: 10px; }
     .add-skill-row { display: flex; gap: 10px; align-items: flex-end; }
+
     .roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
     .roster-card { background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 10px; position: relative; display: flex; flex-direction: column; gap: 4px; }
     .roster-card .r-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .roster-card .r-class { font-size: 12px; color: var(--muted); }
     .roster-card .btn-del-roster { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; }
     .roster-card:hover .btn-del-roster { opacity: 1; }
+    
     #imagePreviewMask .modal { width: 900px; height: 90vh; background: #1a1a1f; }
     #imagePreviewBody { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #0f0f13;}
     #imagePreviewBody img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-    /* 极其高级的战术长图排版 (隐藏区) */
+    /* 生成图片排版 (隐藏区) */
     #share-view {
       position: absolute; top: -9999px; left: -9999px;
       width: 900px; background: #121218; color: #fff; padding: 30px;
@@ -226,7 +232,7 @@
     </div>
   </main>
 
-  <!-- 隐藏的纯输出图片区 -->
+  <!-- 隐藏的分享纯输出图 -->
   <div id="share-view">
     <div class="sv-header">
       <h1 class="sv-title" id="sv-dungeonName">未命名副本</h1>
@@ -289,7 +295,7 @@
   <div id="toastBox"></div>
 
   <script>
-    const STORAGE_KEY = 'wo-tactics-board-v41'; // 升级版本号，防止旧缓存干扰
+    const STORAGE_KEY = 'wo-tactics-board-v42'; // 升级版本
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
@@ -304,10 +310,8 @@
     const $ = id => document.getElementById(id);
     const toastBox = $('toastBox');
 
-    // 极简文本转义
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    // 极简数据清洗，保证兼容旧版
     function cleanData(d) {
       if (!d.library) d.library = {};
       const fixC = c => c === '死灵术士' ? '死灵师' : c === '炼金术师' ? '炼金术士' : c;
@@ -324,6 +328,7 @@
           if (!Array.isArray(d.library[c])) d.library[c] = [];
           d.library[c].forEach(s => {
             if (s.itemName && !s.items) { s.items = [s.itemName]; delete s.itemName; }
+            if (!s.timing) s.timing = ['AM', 'PM']; // 兼容旧数据，默认全可放
           });
         });
       }
@@ -436,7 +441,6 @@
       $('sv-author').textContent = db.authorName || '无名指挥官';
       $('sv-url').textContent = window.location.hostname || 'local';
 
-      // 1. 正方形切割沙盘
       const posNames = { '前': '前排', '左': '左翼', '中': '中间', '右': '右翼', '后': '后排' };
       $('sv-deploy-grid').innerHTML = ['前', '左', '中', '右', '后'].map(pos => {
         const list = db.players.filter(p => p.position === pos);
@@ -451,7 +455,6 @@
         `;
       }).join('');
 
-      // 2. 楼层战术表格
       let tacticsHtml = '';
       db.activePhases.forEach(phase => {
         const phaseActions = db.actions[phase] || {};
@@ -592,10 +595,21 @@
           if (selSk.depType === 'required' && selSk.items.length === 1 && !currentActionDraft.item) currentActionDraft.item = selSk.items[0];
           itemHtml = `<div class="field"><label>${selSk.depType==='required'?'强制消耗':'可选物品'}</label><select data-afield="item">${selSk.depType==='optional'?'<option value="">-- 不附加 --</option>':''}${selSk.items.map(it => `<option value="${it}"${currentActionDraft.item===it?' selected':''}>${esc(it)}</option>`).join('')}</select></div>`;
         }
+        
+        // 判断是否禁用 AM
+        const isPmOnly = selSk && selSk.timing && !selSk.timing.includes('AM');
+        
         formHtml = `
-          <div style="background:#1c1c23;padding:15px;border-radius:8px;border:1px solid var(--accent);margin-top:20px;">
+          <div style="background:#1c1c23;padding:15px;border-radius:6px;border:1px solid var(--accent);margin-top:20px;">
             <h5 style="margin:0 0 12px 0;color:var(--accent);">添加动作</h5>
-            <div class="field"><label>时机</label><div class="radio-row"><label class="radio"><input type="radio" name="a_timing" value="AM"${currentActionDraft.timing==='AM'?' checked':''}>AM</label><label class="radio"><input type="radio" name="a_timing" value="PM"${currentActionDraft.timing==='PM'?' checked':''}>PM</label></div></div>
+            <div class="field">
+              <label>时机</label>
+              <div class="radio-row">
+                <label class="radio"><input type="radio" name="a_timing" value="AM"${currentActionDraft.timing==='AM'?' checked':''} ${isPmOnly ? 'disabled' : ''}>AM</label>
+                <label class="radio"><input type="radio" name="a_timing" value="PM"${currentActionDraft.timing==='PM'?' checked':''}>PM</label>
+              </div>
+              ${isPmOnly ? `<span style="font-size:12px; color:var(--danger);">此技能限制了只能在回合中(PM)释放</span>` : ''}
+            </div>
             <div class="field"><label>技能</label><select data-afield="skillId"><option value="">--选择--</option>${skills.map(s => `<option value="${s.id}"${currentActionDraft.skillId===s.id?' selected':''}>${esc(s.name)}</option>`).join('')}</select></div>
             ${itemHtml}
             <div class="field"><label>使用位置</label><select data-afield="target">${[...POSITIONS, '自身'].map(t => `<option value="${t}"${currentActionDraft.target===t?' selected':''}>${esc(t)}</option>`).join('')}</select></div>
@@ -620,6 +634,9 @@
         if (!currentActionDraft.skillId) return toast('请选择技能', 'warn');
         const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
         if (sk.depType === 'required' && !currentActionDraft.item) return toast('需选择物品', 'warn');
+        if (sk.timing && !sk.timing.includes(currentActionDraft.timing)) {
+          return toast(`【${sk.name}】不支持在 ${currentActionDraft.timing} 释放！`, 'error');
+        }
         actionsDraft.push({ ...currentActionDraft }); isAddingAction = false; renderDrawerBody();
       }
       if (t.classList.contains('btn-del-action')) {
@@ -634,7 +651,11 @@
         if (f === 'skillId') {
           currentActionDraft.skillId = e.target.value || null; currentActionDraft.item = '';
           const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
-          if (sk && sk.depType === 'required' && sk.items?.length === 1) currentActionDraft.item = sk.items[0];
+          if (sk) {
+            if (sk.depType === 'required' && sk.items?.length === 1) currentActionDraft.item = sk.items[0];
+            // 联动：如果只能PM，强制变为PM
+            if (sk.timing && !sk.timing.includes('AM')) currentActionDraft.timing = 'PM';
+          }
           renderDrawerBody();
         } else if (f) currentActionDraft[f] = e.target.value;
       } else if (drawerMode === 'deploy' && e.target.dataset.field) {
@@ -649,7 +670,11 @@
 
     $('drawerFooter').addEventListener('click', e => {
       if (e.target.id === 'btn-save-tactics') {
-        if (isAddingAction && currentActionDraft.skillId) actionsDraft.push({ ...currentActionDraft }); // 兜底保存
+        if (isAddingAction && currentActionDraft.skillId) {
+          const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
+          if (sk.timing && !sk.timing.includes(currentActionDraft.timing)) return toast('技能时机不符', 'error');
+          actionsDraft.push({ ...currentActionDraft });
+        }
         if (!db.actions[currentPhase]) db.actions[currentPhase] = {};
         db.actions[currentPhase][currentPlayer.id] = actionsDraft.map(a => ({...a}));
         save(); closeDrawer(); renderTactics(); toast('战术已保存', 'ok');
@@ -677,21 +702,54 @@
         $('libBody').innerHTML = `
           <div class="lib-sidebar">${CLASS_NAMES.map(c => `<button class="lib-class-btn${currentLibClass===c?' active':''}" data-class="${c}">${c}</button>`).join('')}</div>
           <div class="lib-content">
-            <div class="skill-grid">${skills.map(s => `<div class="skill-card"><button class="btn-del-skill" data-del-skill="${s.id}">×</button><div class="s-name">${esc(s.name)}</div>${s.items?.length ? `<div class="s-item">${s.depType==='required'?'🔒':'🎲'} ${esc(s.items.join('/'))}</div>` : ''}</div>`).join('') || '空'}</div>
+            <div class="skill-grid">
+              ${skills.map(s => {
+                let timingTag = '';
+                if (s.timing && s.timing.includes('AM')) {
+                  timingTag = `<span class="s-timing all">AM/PM</span>`;
+                } else {
+                  timingTag = `<span class="s-timing pm">仅PM</span>`;
+                }
+                return `<div class="skill-card">
+                  <button class="btn-del-skill" data-del-skill="${s.id}">×</button>
+                  <div class="s-name"><span>${esc(s.name)}</span> ${timingTag}</div>
+                  ${s.items?.length ? `<div class="s-item">${s.depType==='required'?'🔒':'🎲'} ${esc(s.items.join('/'))}</div>` : ''}
+                </div>`;
+              }).join('') || '空'}
+            </div>
             <div class="add-skill-form">
               <h4>添加技能</h4>
               <div class="add-skill-row"><div class="field" style="flex:1;margin:0;"><input type="text" id="newSkillName" placeholder="技能名称"></div><div class="field" style="flex:1;margin:0;"><select id="newSkillDep"><option value="none">无依赖</option><option value="required">强依赖</option><option value="optional">弱依赖</option></select></div></div>
+              
+              <div class="field" style="margin-top:10px;">
+                <label>可用时机</label>
+                <div class="radio-row">
+                  <label class="radio"><input type="checkbox" id="newSkillAM" checked> 回合前(AM)</label>
+                  <label class="radio"><input type="checkbox" id="newSkillPM" checked> 回合中(PM)</label>
+                </div>
+              </div>
+
               <div class="add-skill-row" id="newItemRow" style="display:none;"><input type="text" id="newSkillItem" placeholder="物品名(多个逗号隔开)"></div>
-              <button class="btn primary" id="addSkillBtn">录入</button>
+              <button class="btn primary" id="addSkillBtn" style="margin-top:10px;">录入</button>
             </div>
           </div>`;
         $('libBody').querySelectorAll('.lib-class-btn').forEach(b => b.onclick = e => { currentLibClass = e.target.dataset.class; renderLib(); });
         $('newSkillDep').onchange = e => $('newItemRow').style.display = e.target.value === 'none' ? 'none' : 'flex';
+        
         $('addSkillBtn').onclick = () => {
           const n = $('newSkillName').value.trim(); const dep = $('newSkillDep').value; const it = $('newSkillItem').value.trim();
-          if (!n) return toast('请输入名称', 'warn'); if (dep === 'required' && !it) return toast('强依赖必须填物品', 'warn');
+          const isAM = $('newSkillAM').checked; const isPM = $('newSkillPM').checked;
+          
+          if (!n) return toast('请输入名称', 'warn'); 
+          if (dep === 'required' && !it) return toast('强依赖必须填物品', 'warn');
+          if (!isAM && !isPM) return toast('请至少勾选一个可用时机', 'warn');
+
           const items = dep !== 'none' && it ? it.split(/[,，]/).map(i => i.trim()).filter(Boolean) : [];
-          db.library[currentLibClass].push({ id: Date.now().toString(), name: n, depType: dep, items });
+          const timingArr = [];
+          if (isAM) timingArr.push('AM');
+          if (isPM) timingArr.push('PM');
+
+          db.library[currentLibClass].push({ id: Date.now().toString(), name: n, depType: dep, items, timing: timingArr });
           save(); renderLib(); toast('已录入', 'ok');
         };
         $('libBody').querySelectorAll('[data-del-skill]').forEach(b => b.onclick = e => { db.library[currentLibClass] = db.library[currentLibClass].filter(s => s.id !== e.target.dataset.delSkill); save(); renderLib(); });
