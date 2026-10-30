@@ -16,6 +16,18 @@
     [hidden] { display: none !important; }
     body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system, "Microsoft YaHei", sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     
+    /* 通用工具类 (清理了JS里的内联样式) */
+    .flex-row { display: flex; align-items: center; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; }
+    .flex-center { display: flex; align-items: center; justify-content: center; }
+    .flex-col { display: flex; flex-direction: column; }
+    .text-warn { color: var(--warn); font-weight: bold; }
+    .text-accent { color: var(--accent); }
+    .text-muted { color: var(--muted); }
+    .text-italic { font-style: italic; }
+    .gap-10 { gap: 10px; }
+    .gap-15 { gap: 15px; }
+
     /* 顶部 UI */
     .top-bar { display: flex; flex-direction: column; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: rgba(15, 15, 19, 0.96); z-index: 20; flex-shrink: 0; }
     .title-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -29,9 +41,9 @@
     .main-content { flex: 1; overflow: hidden; position: relative; }
 
     /* 1. 排兵布阵 */
-    #viewDeploy { height: 100%; display: flex; padding: 20px; overflow: hidden; }
-    .deploy-center { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
-    .cross-container { display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 15px; width: 100%; max-width: 1000px; height: 80vh; max-height: 900px; }
+    #viewDeploy { height: 100%; display: flex; flex-direction: column; padding: 20px; overflow: hidden; gap: 15px; }
+    .deploy-center { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 0; }
+    .cross-container { display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 15px; width: 100%; max-width: 1000px; height: 100%; max-height: 900px; }
     .position-group { border: 2px solid #4CAF50; border-radius: 10px; background: var(--panel); display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; justify-content: center; position: relative; padding: 45px 15px 15px 15px; overflow-y: auto; }
     .pos-front { grid-column: 1 / -1; grid-row: 1; }
     .pos-left { grid-column: 1; grid-row: 2; }
@@ -47,8 +59,22 @@
     .player-card .class { font-size: 0.75em; color: var(--muted); margin-top: 4px; }
     .player-card .del-btn { position: absolute; top: -8px; right: -8px; color: #fff; background: var(--danger); border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; z-index: 10; }
     .player-card:hover .del-btn { opacity: 1; }
+    @media (hover: none) { .player-card .del-btn, .roster-card .btn-del-roster, .skill-card .btn-del-skill { opacity: 1; } }
     .add-btn { background: rgba(255,255,255,0.03); border: 1px dashed var(--line-strong); color: var(--muted); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: transform 0.1s; font-size: 24px; display: flex; align-items: center; justify-content: center; margin: auto; }
     .add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); transform: scale(1.1); }
+
+    /* 备注栏 (复用) */
+    .note-bar { 
+      display: flex; align-items: center; justify-content: center; 
+      background: var(--panel); padding: 10px 15px; 
+      border: 1px solid var(--line); border-radius: 8px; 
+      max-width: 1000px; margin: 0 auto; width: 100%;
+    }
+    .note-bar label { font-size: 13px; color: var(--accent); font-weight: bold; margin-right: 15px; white-space: nowrap; }
+    .note-bar input { background: transparent; border: none; border-bottom: 1px dashed var(--line-strong); color: var(--warn); font-size: 14px; font-weight: bold; text-align: center; outline: none; padding: 4px; flex: 1; max-width: 600px; transition: border-color 0.2s; }
+    .note-bar input:focus { border-bottom-color: var(--accent); }
+    
+    #viewTactics .phase-note-bar { border-radius: 0 0 8px 8px; border-top: none; margin-bottom: 5px; }
 
     /* 2. 战术编排 */
     #viewTactics { padding: 20px; display: flex; flex-direction: column; gap: 15px; max-width: 1200px; margin: 0 auto; height: 100%; overflow-y: auto; }
@@ -57,11 +83,6 @@
     .phase-btn { min-width: 52px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line-strong); background: #1c1c23; color: var(--muted); font-size: 14px; cursor: pointer; transition: all 0.2s; font-family: inherit; font-weight: 600; }
     .phase-btn:hover { border-color: #66667a; color: var(--text); }
     .phase-btn.active { background: var(--accent); border-color: var(--accent); color: #001014; font-weight: 800; }
-    
-    .phase-note-bar { display: flex; align-items: center; justify-content: center; background: var(--panel); padding: 10px 15px; border: 1px solid var(--line); border-top: none; border-radius: 0 0 8px 8px; margin-bottom: 5px; }
-    .phase-note-bar label { font-size: 13px; color: var(--accent); font-weight: bold; margin-right: 15px; white-space: nowrap; }
-    .phase-note-bar input { background: transparent; border: none; border-bottom: 1px dashed var(--line-strong); color: var(--warn); font-size: 14px; font-weight: bold; text-align: center; outline: none; padding: 4px; flex: 1; max-width: 600px; transition: border-color 0.2s; }
-    .phase-note-bar input:focus { border-bottom-color: var(--accent); }
 
     .tactic-list { display: flex; flex-direction: column; gap: 12px; }
     .tactic-group { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
@@ -158,20 +179,15 @@
     #imagePreviewBody img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
     /* 3. 分享长图 (隐藏区) */
-    #share-view {
-      position: absolute; top: -9999px; left: -9999px;
-      width: 900px; background: #121218; color: #fff; padding: 30px;
-      box-sizing: border-box; display: flex; flex-direction: column; gap: 25px;
-      font-family: "Microsoft YaHei", sans-serif;
-    }
+    #share-view { position: absolute; top: -9999px; left: -9999px; width: 900px; background: #121218; color: #fff; padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; gap: 25px; font-family: "Microsoft YaHei", sans-serif; }
     .sv-header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.05); }
     .sv-title { font-size: 40px; font-weight: bold; color: #00d9ff; margin: 0 0 10px 0; letter-spacing: 4px; text-shadow: 0 0 20px rgba(0, 217, 255, 0.3); }
     .sv-subtitle { font-size: 16px; color: #8b8b9a; letter-spacing: 2px; }
     .sv-section-title { font-size: 22px; color: #fff; margin: 0 0 20px 0; border-left: 6px solid #00d9ff; padding-left: 15px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
     .sv-section-title span { font-size: 14px; color: #666; font-weight: normal; }
     
-    .sv-deploy-grid { display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 10px; width: 100%; height: 380px; margin: 0 auto; }
-    .sv-grid-cell { background: #1a1a24; border-radius: 8px; border: 2px solid #333; padding: 10px; position: relative; display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; overflow: hidden; }
+    .sv-deploy-grid { display: grid; grid-template-columns: 1fr 2fr 1fr; grid-template-rows: 1fr 2fr 1fr; gap: 10px; width: 100%; min-height: 380px; margin: 0 auto; }
+    .sv-grid-cell { background: #1a1a24; border-radius: 8px; border: 2px solid #333; padding: 35px 10px 15px 10px; position: relative; display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
     .sv-cell-title { position: absolute; top: 5px; left: 0; width: 100%; text-align: center; font-size: 14px; font-weight: bold; color: #555; }
     .sv-pos-front { grid-column: 1 / -1; grid-row: 1; border-color: #4CAF50; }
     .sv-pos-left { grid-column: 1; grid-row: 2; border-color: #4CAF50; }
@@ -183,7 +199,7 @@
     
     .sv-tactic-card { background: #1a1a24; border-radius: 12px; border: 1px solid #2f2f38; overflow: hidden; margin-bottom: 20px; }
     .sv-card-header { background: #222230; padding: 12px 20px; font-size: 18px; font-weight: bold; color: #ffc857; border-bottom: 1px solid #333; }
-    .sv-phase-note { background: rgba(0, 217, 255, 0.1); color: #00d9ff; padding: 12px 20px; font-size: 15px; font-weight: bold; border-bottom: 1px solid #333; display: flex; align-items: center; }
+    .sv-phase-note { background: rgba(0, 217, 255, 0.1); color: #00d9ff; padding: 12px 20px; font-size: 15px; font-weight: bold; border-bottom: 1px solid #333; display: flex; align-items: center; border-radius: 8px; }
     .sv-phase-note::before { content: '📌'; margin-right: 10px; font-size: 18px; }
     
     .sv-tactic-table { width: 100%; border-collapse: collapse; }
@@ -217,11 +233,11 @@
 <body>
   <header class="top-bar">
     <div class="title-row">
-      <div style="display:flex; align-items:center; gap:15px;">
+      <div class="flex-row gap-15">
         <h1>WOD 战术板</h1>
         <input type="text" id="dungeonName" class="dungeon-input" placeholder="输入副本名称..." value="未命名副本">
       </div>
-      <div style="display:flex; gap:10px;">
+      <div class="flex-row gap-10">
         <button class="btn primary" id="shareImageBtn" style="font-size: 14px; padding: 8px 16px; box-shadow: 0 0 10px rgba(0,217,255,0.3);">📸 生成战术长图</button>
         <button class="btn" id="openLibBtn">⚙️ 战术库配置</button>
         <button class="btn" id="resetBtn" style="color:var(--danger); border-color:var(--danger);">清空数据</button>
@@ -236,6 +252,12 @@
 
   <main class="main-content">
     <div id="viewDeploy" hidden>
+      <div style="width: 100%; max-width: 1000px; margin: 0 auto; flex-shrink: 0;">
+        <div class="note-bar">
+          <label>📌 阵容备注:</label>
+          <input type="text" id="deployNoteInput" placeholder="输入阵容部署的特殊注意事项...">
+        </div>
+      </div>
       <div class="deploy-center"><div class="cross-container" id="deploySandbox"></div></div>
     </div>
     <div id="viewTactics" hidden>
@@ -243,7 +265,7 @@
         <div class="phase-list" id="phaseBar"></div>
         <button class="btn" id="phaseSettingsBtn" style="padding: 4px 10px; font-size: 12px;">⚙️ 启用阶段</button>
       </div>
-      <div class="phase-note-bar">
+      <div class="note-bar phase-note-bar">
         <label>📌 当前阶段提示:</label>
         <input type="text" id="phaseNoteInput" placeholder="输入该阶段的特殊注意事项...">
       </div>
@@ -258,6 +280,7 @@
     </div>
     <div>
       <h2 class="sv-section-title">📌 阵容部署 <span>Formation</span></h2>
+      <div id="sv-deploy-note" class="sv-phase-note" style="display:none; margin-bottom: 15px;"></div>
       <div class="sv-deploy-grid" id="sv-deploy-grid"></div>
     </div>
     <div>
@@ -294,12 +317,12 @@
   <div class="modal-mask" id="editSkillMask">
     <div class="modal" style="width: 500px; height: auto;">
       <div class="modal-head"><h3>修改技能</h3><button class="icon-btn" id="closeEditSkillBtn">&times;</button></div>
-      <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+      <div class="flex-col gap-10" style="padding: 20px;">
         <div class="field"><label>技能名称</label><input type="text" id="editSkillName"></div>
         <div class="field"><label>物品依赖</label><select id="editSkillDep"><option value="none">无依赖</option><option value="required">强依赖</option><option value="optional">弱依赖</option></select></div>
         <div class="field" id="editItemRow" style="display:none;"><label>物品名称 (多个逗号隔开)</label><input type="text" id="editSkillItem"></div>
-        <div class="field" style="flex-direction:row; gap:20px; align-items:center; margin-top:10px;">
-          <div style="display:flex; gap:10px; align-items:center;">
+        <div class="field flex-row gap-15" style="margin-top:10px;">
+          <div class="flex-row gap-10">
             <label class="radio"><input type="checkbox" id="editSkillAM"> AM</label>
             <label class="radio"><input type="checkbox" id="editSkillPM"> PM</label>
           </div>
@@ -325,7 +348,7 @@
   <div class="modal-mask" id="phaseMask">
     <div class="modal" style="width: 400px; height: auto;">
       <div class="modal-head"><h3>选择使用的阶段</h3><button class="icon-btn" id="closePhaseBtn">&times;</button></div>
-      <div style="padding: 20px; display: flex; flex-wrap: wrap; gap: 15px;" id="phaseCheckboxes"></div>
+      <div class="flex-row flex-wrap gap-15" style="padding: 20px;" id="phaseCheckboxes"></div>
       <div style="padding: 0 20px 20px; text-align: right;"><button class="btn primary" id="savePhaseBtn">确定</button></div>
     </div>
   </div>
@@ -333,12 +356,17 @@
   <div id="toastBox"></div>
 
   <script>
+    // ======================== 1. 常量与工具 ========================
     const STORAGE_KEY = 'wod-tactics-board-v53'; 
     const ALL_PHASES = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'];
     const POSITIONS = ['前', '左', '中', '右', '后'];
     const CLASS_NAMES = ['圣武士', '角斗士', '野蛮人', '骑士', '杂耍艺人', '法师', '死灵师', '萨满', '猎人', '射手', '漂泊客', '学者', '祭司', '舞者', '吟游诗人', '炼金术士', '其他'];
+    
+    // 抽离重复的映射，减少内联三元表达式
+    const POS_NAME_MAP = { '前': '前排', '左': '左翼', '中': '中间', '右': '右翼', '后': '后排' };
+    const POS_CLASS_MAP = { '前': 'front', '后': 'back', '左': 'left', '右': 'right', '中': 'middle' };
 
-    let db = { dungeonName: '未命名副本', authorName: '', activePhases: ['F1', 'F2', 'F3'], phaseNotes: {}, roster: [], library: {}, players: [], actions: {} };
+    let db = { dungeonName: '未命名副本', authorName: '', deployNote: '', activePhases: ['F1', 'F2', 'F3'], phaseNotes: {}, roster: [], library: {}, players: [], actions: {} };
     CLASS_NAMES.forEach(n => db.library[n] = []);
 
     let currentView = 'deploy', currentPhase = 'F1', currentPlayer = null;
@@ -348,25 +376,23 @@
 
     const $ = id => document.getElementById(id);
     const toastBox = $('toastBox');
-
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    let saveTimer = null;
-    function save() { 
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }, 300); 
+    // 统一查找技能
+    function getSkill(className, skillId) {
+      return (db.library[className] || []).find(s => s.id === skillId);
     }
 
+    // 统一处理结构，包含版本兼容
     function cleanData(d) {
       if (!d.library) d.library = {};
       if (!d.phaseNotes) d.phaseNotes = {};
+      if (typeof d.deployNote !== 'string') d.deployNote = '';
       const fixC = c => c === '死灵术士' ? '死灵师' : c === '炼金术师' ? '炼金术士' : c;
       const fixP = p => POSITIONS.includes(p) ? p : (p.includes('前')?'前':p.includes('后')?'后':p.includes('左')?'左':p.includes('右')?'右':'中');
 
       if (d.roster) d.roster = d.roster.filter(r => r && r.name).map(r => ({...r, class: fixC(r.class)}));
-      if (d.players) {
-        d.players = d.players.filter(p => p && p.name && p.class).map(p => ({...p, class: fixC(p.class), position: fixP(p.position)})).slice(0, 12);
-      }
+      if (d.players) d.players = d.players.filter(p => p && p.name && p.class).map(p => ({...p, class: fixC(p.class), position: fixP(p.position)})).slice(0, 12);
       if (d.library) {
         Object.keys(d.library).forEach(c => {
           if (!Array.isArray(d.library[c])) d.library[c] = [];
@@ -380,6 +406,12 @@
       return d;
     }
 
+    let saveTimer = null;
+    function save() { 
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }, 300); 
+    }
+
     function load() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -387,6 +419,7 @@
       } catch(e) {}
       CLASS_NAMES.forEach(n => { if (!Array.isArray(db.library[n])) db.library[n] = []; });
       $('dungeonName').value = db.dungeonName;
+      $('deployNoteInput').value = db.deployNote || '';
       if (!db.activePhases.includes(currentPhase)) currentPhase = db.activePhases[0] || 'F1';
     }
 
@@ -406,15 +439,13 @@
       if (view === 'deploy') renderDeploy(); else renderTactics();
     }
 
-    // ================= 视图渲染 =================
+    // ======================== 2. 视图渲染 ========================
     function renderDeploy() {
       $('deploySandbox').innerHTML = POSITIONS.map(pos => {
         const list = db.players.filter(p => p.position === pos);
-        const posClass = pos === '前' ? 'front' : pos === '后' ? 'back' : pos === '左' ? 'left' : pos === '右' ? 'right' : 'middle';
-        const displayName = pos === '左' ? '左翼' : pos === '右' ? '右翼' : pos === '前' ? '前排' : pos === '中' ? '中间' : '后排';
         return `
-          <section class="position-group pos-${posClass}" data-pos="${pos}">
-            <h3>${displayName}</h3>
+          <section class="position-group pos-${POS_CLASS_MAP[pos]}" data-pos="${pos}">
+            <h3>${POS_NAME_MAP[pos]}</h3>
             ${list.map(p => `
               <div class="player-card" data-id="${p.id}">
                 <button class="del-btn" data-del="${p.id}">×</button>
@@ -422,6 +453,7 @@
                 <div class="class">${esc(p.class)}</div>
               </div>
             `).join('')}
+            ${list.length === 0 ? `<div class="text-muted" style="font-size:12px; margin-top:20px;">(空)</div>` : ''}
             <button class="add-btn" data-add="${pos}">+</button>
           </section>
         `;
@@ -435,10 +467,9 @@
       $('tacticList').innerHTML = POSITIONS.map(pos => {
         const list = db.players.filter(p => p.position === pos);
         if (!list.length) return '';
-        const displayName = pos === '左' ? '左翼' : pos === '右' ? '右翼' : pos === '前' ? '前排' : pos === '中' ? '中间' : '后排';
         return `
           <div class="tactic-group">
-            <div class="tactic-group-header">${displayName}</div>
+            <div class="tactic-group-header">${POS_NAME_MAP[pos]}</div>
             <div class="tactic-header-row"><div class="col-name"></div><div class="col-class"></div><div class="col-timing">时机</div><div class="col-skill">技能</div><div class="col-item">物品</div><div class="col-target">使用位置</div><div class="col-remark">备注</div></div>
             ${list.map(p => {
               const acts = db.actions[currentPhase]?.[p.id] || [];
@@ -446,17 +477,17 @@
                 <div class="tactic-row" data-id="${p.id}">
                   <div class="col-name" style="padding-top:4px;">${esc(p.name)}</div>
                   <div class="col-class" style="padding-top:4px;">${esc(p.class)}</div>
-                  <div style="flex:1; display:flex; flex-direction:column;">
+                  <div class="flex-col" style="flex:1;">
                     ${acts.length === 0 ? `<div class="col-timing"><span class="tag-empty">-</span></div><div class="col-skill"><span class="tag-empty">-</span></div><div class="col-item"><span class="tag-empty">-</span></div><div class="col-target"><span class="tag-empty">-</span></div><div class="col-remark"></div>` : ''}
                     ${acts.map((act, i) => {
-                      const sk = db.library[p.class]?.find(s => s.id === act.skillId);
+                      const sk = getSkill(p.class, act.skillId);
                       return `
-                        <div style="display:flex;width:100%;align-items:center;${i===acts.length-1?'':'padding-bottom:8px;margin-bottom:8px;border-bottom:1px dashed #333;'}">
+                        <div class="flex-row" style="width:100%; ${i===acts.length-1?'':'padding-bottom:8px;margin-bottom:8px;border-bottom:1px dashed #333;'}">
                           <div class="col-timing"><span class="tag-timing ${act.timing}">${act.timing}</span></div>
-                          <div class="col-skill"><span style="color:var(--warn);font-weight:bold;">${esc(sk?sk.name:'?')}</span></div>
+                          <div class="col-skill"><span class="text-warn">${esc(sk?sk.name:'?')}</span></div>
                           <div class="col-item">${act.item?`<span class="tag-item">${esc(act.item)}</span>`:'<span class="tag-empty">-</span>'}</div>
-                          <div class="col-target"><span style="color:var(--accent);">${esc(act.target)}</span></div>
-                          <div class="col-remark"><span style="font-style:italic;">${esc(act.remark||'')}</span></div>
+                          <div class="col-target"><span class="text-accent">${esc(act.target)}</span></div>
+                          <div class="col-remark"><span class="text-italic">${esc(act.remark||'')}</span></div>
                         </div>
                       `;
                     }).join('')}
@@ -469,21 +500,28 @@
       }).join('');
     }
 
-    // ================= 分享图渲染 =================
+    // ======================== 3. 分享图渲染 ========================
     function renderShareView() {
       $('sv-dungeonName').textContent = db.dungeonName || '未命名副本';
       $('sv-author').textContent = db.authorName || '无名指挥官';
       $('sv-url').textContent = window.location.hostname || 'local';
 
-      const posNames = { '前': '前排', '左': '左翼', '中': '中间', '右': '右翼', '后': '后排' };
+      const noteEl = $('sv-deploy-note');
+      if (db.deployNote && db.deployNote.trim()) {
+        noteEl.style.display = 'flex';
+        noteEl.textContent = db.deployNote;
+      } else {
+        noteEl.style.display = 'none';
+      }
+
       $('sv-deploy-grid').innerHTML = POSITIONS.map(pos => {
         const list = db.players.filter(p => p.position === pos);
-        const gridClass = pos === '前' ? 'front' : pos === '后' ? 'back' : pos === '左' ? 'left' : pos === '右' ? 'right' : 'middle';
         return `
-          <div class="sv-grid-cell sv-pos-${gridClass}">
-            <div class="sv-cell-title">${posNames[pos]}</div>
-            <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:15px;">
+          <div class="sv-grid-cell sv-pos-${POS_CLASS_MAP[pos]}">
+            <div class="sv-cell-title">${POS_NAME_MAP[pos]}</div>
+            <div class="flex-row flex-wrap flex-center gap-10" style="margin-top:15px;">
               ${list.map(p => `<div class="sv-p-tag">${esc(p.name)} <span>${esc(p.class)}</span></div>`).join('')}
+              ${list.length === 0 ? `<div class="text-muted" style="font-size:12px;">(空)</div>` : ''}
             </div>
           </div>
         `;
@@ -496,7 +534,7 @@
         db.players.forEach(p => {
           const acts = phaseActions[p.id] || [];
           acts.forEach(act => {
-            const sk = db.library[p.class]?.find(s => s.id === act.skillId);
+            const sk = getSkill(p.class, act.skillId);
             rows.push({ name: p.name, class: p.class, timing: act.timing, skill: sk ? sk.name : '未知', item: act.item, target: act.target, remark: act.remark });
           });
         });
@@ -515,7 +553,7 @@
                       <tr>
                         <td class="sv-td-name">${esc(r.name)}</td>
                         <td class="sv-td-class">${esc(r.class)}</td>
-                        <td class="sv-td-skill"><span class="sv-badge ${r.timing.toLowerCase()}">${r.timing}</span> ${esc(r.skill)}</td>
+                        <td class="sv-td-skill"><span class="sv-badge ${(r.timing || 'AM').toLowerCase()}">${r.timing || 'AM'}</span> ${esc(r.skill)}</td>
                         <td class="sv-td-item">${r.item ? `<span class="sv-item-tag">${esc(r.item)}</span>` : '-'}</td>
                         <td class="sv-td-target">${esc(r.target)}</td>
                         <td class="sv-td-remark">${esc(r.remark || '')}</td>
@@ -523,15 +561,15 @@
                     `).join('')}
                   </tbody>
                 </table>
-              ` : `<div style="padding: 20px; color: #666; font-size: 14px;">本阶段无具体动作，仅需注意上方机制。</div>`}
+              ` : `<div class="text-muted" style="padding: 20px; font-size: 14px;">本阶段无具体动作，仅需注意上方机制。</div>`}
             </div>
           `;
         }
       });
-      $('sv-tactics-container').innerHTML = tacticsHtml || '<div style="color:#666;font-size:16px;">目前没有任何战术配置。</div>';
+      $('sv-tactics-container').innerHTML = tacticsHtml || '<div class="text-muted" style="font-size:16px;">目前没有任何战术配置。</div>';
     }
 
-    // ================= 抽屉渲染 =================
+    // ======================== 4. 抽屉与弹窗渲染 ========================
     function renderDrawerBody() {
       if (drawerMode === 'deploy') {
         const rosterOpts = '<option value="">-- 选择名册 --</option>' + db.roster.map(r => {
@@ -541,7 +579,7 @@
 
         $('drawerBody').innerHTML = `
           <div class="field" style="background:var(--accent-dim);border:1px solid rgba(0,217,255,0.3);padding:10px;border-radius:6px;margin-bottom:20px;">
-            <label style="color:var(--accent);">⚡ 快捷选择</label>
+            <label class="text-accent">⚡ 快捷选择</label>
             <select id="rosterSelect">${rosterOpts}</select>
           </div>
           <div class="field"><label>名字</label><input type="text" id="playerNameInput" data-field="name" value="${esc(playerDraft.name)}"></div>
@@ -557,15 +595,16 @@
 
       const skills = db.library[currentPlayer.class] || [];
       let listHtml = actionsDraft.map((act, i) => {
-        const sk = skills.find(s => s.id === act.skillId);
-        return `<div class="action-card"><div class="a-info"><span class="tag-timing ${act.timing}">${act.timing}</span><strong style="color:var(--warn);">${esc(sk?sk.name:'?')}</strong>${act.item?`<span class="tag-item">${esc(act.item)}</span>`:''}<span style="color:var(--accent);">→ ${esc(act.target)}</span>${act.remark?`<span style="color:var(--muted);font-size:12px;">(${esc(act.remark)})</span>`:''}</div><button class="btn-del-action" data-del="${i}">×</button></div>`;
-      }).join('') || '<div style="color:var(--muted);font-size:13px;margin-bottom:20px;">暂无动作</div>';
+        const sk = getSkill(currentPlayer.class, act.skillId);
+        return `<div class="action-card"><div class="a-info"><span class="tag-timing ${act.timing}">${act.timing}</span><strong class="text-warn">${esc(sk?sk.name:'?')}</strong>${act.item?`<span class="tag-item">${esc(act.item)}</span>`:''}<span class="text-accent">→ ${esc(act.target)}</span>${act.remark?`<span class="text-muted" style="font-size:12px;">(${esc(act.remark)})</span>`:''}</div><button class="btn-del-action" data-del="${i}">×</button></div>`;
+      }).join('') || '<div class="text-muted" style="font-size:13px;margin-bottom:20px;">暂无动作</div>';
 
       let formHtml = '';
       if (isAddingAction) {
         if (!currentActionDraft.skillId) currentActionDraft = { timing: 'AM', skillId: null, item: '', target: '前', remark: '' };
-        const selSk = skills.find(s => s.id === currentActionDraft.skillId);
+        const selSk = getSkill(currentPlayer.class, currentActionDraft.skillId);
         let itemHtml = '';
+        
         if (selSk && selSk.depType !== 'none' && selSk.items && selSk.items.length > 0) {
           if (selSk.depType === 'required' && selSk.items.length === 1 && !currentActionDraft.item) currentActionDraft.item = selSk.items[0];
           itemHtml = `<div class="field"><label>${selSk.depType==='required'?'强制消耗':'可选物品'}</label><select data-afield="item">${selSk.depType==='optional'?'<option value="">-- 不附加 --</option>':''}${selSk.items.map(it => `<option value="${it}"${currentActionDraft.item===it?' selected':''}>${esc(it)}</option>`).join('')}</select></div>`;
@@ -607,7 +646,6 @@
       $('drawerFooter').innerHTML = `<button class="btn primary block" id="btn-save-tactics" data-hotkey="true">保存战术</button>`;
     }
 
-    // ================= 战术库渲染 =================
     function renderLib() {
       document.querySelectorAll('.lib-tab').forEach(t => t.classList.toggle('active', t.dataset.libtab === currentLibTab));
       if (currentLibTab === 'roster') {
@@ -634,7 +672,7 @@
                 return `<div class="skill-card">
                   <button class="btn-del-skill" data-del-skill="${s.id}">×</button>
                   <button class="btn-edit-skill" data-edit-skill="${s.id}" title="修改技能">✏️</button>
-                  <div class="s-name"><span>${esc(s.name)}</span> <div style="display:flex;gap:4px;">${timingTag}${selfTag}</div></div>
+                  <div class="s-name"><span>${esc(s.name)}</span> <div class="flex-row" style="gap:4px;">${timingTag}${selfTag}</div></div>
                   ${s.items?.length ? `<div class="s-item">${s.depType==='required'?'🔒':'🎲'} ${esc(s.items.join('/'))}</div>` : ''}
                 </div>`;
               }).join('') || '空'}
@@ -642,13 +680,13 @@
             <div class="add-skill-form">
               <h4>添加技能</h4>
               <div class="add-skill-row"><div class="field" style="flex:1;margin:0;"><input type="text" id="newSkillName" placeholder="技能名称"></div><div class="field" style="flex:1;margin:0;"><select id="newSkillDep"><option value="none">无依赖</option><option value="required">强依赖</option><option value="optional">弱依赖</option></select></div></div>
-              <div class="field" style="margin-top:10px; flex-direction:row; gap:20px; align-items:center;">
-                <div style="display:flex; gap:10px; align-items:center;">
-                  <label style="font-size:12px; color:var(--muted);">可用时机:</label>
+              <div class="field flex-row gap-15" style="margin-top:10px;">
+                <div class="flex-row gap-10">
+                  <label class="text-muted" style="font-size:12px;">可用时机:</label>
                   <label class="radio"><input type="checkbox" id="newSkillAM" checked> AM</label>
                   <label class="radio"><input type="checkbox" id="newSkillPM" checked> PM</label>
                 </div>
-                <div style="display:flex; gap:10px; align-items:center;">
+                <div class="flex-row gap-10">
                   <label class="radio" style="color:var(--purple);"><input type="checkbox" id="newSkillSelfOnly"> 仅自身可用</label>
                 </div>
               </div>
@@ -674,9 +712,8 @@
       }
     }
 
-    // ================= 事件委托绑定区 =================
-    
-    // 1. 页面整体事件
+    // ======================== 5. 事件绑定 ========================
+    // 全局
     document.querySelectorAll('.view-tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
     $('openLibBtn').onclick = () => { $('libMask').classList.add('show'); renderLib(); };
     $('closeLibBtn').onclick = () => $('libMask').classList.remove('show');
@@ -685,8 +722,8 @@
     $('closeImageBtn').onclick = () => $('imagePreviewMask').classList.remove('show');
     $('closeEditSkillBtn').onclick = () => $('editSkillMask').classList.remove('show');
     $('closePhaseBtn').onclick = () => $('phaseMask').classList.remove('show');
-    
-    // 2. 排兵布阵事件
+
+    // 1. 排兵布阵
     $('deploySandbox').addEventListener('click', e => {
       const del = e.target.closest('.del-btn');
       if (del) {
@@ -712,7 +749,7 @@
       }
     });
 
-    // 3. 战术编排事件
+    // 2. 战术编排
     $('phaseBar').onclick = e => { if (e.target.classList.contains('phase-btn')) { currentPhase = e.target.dataset.phase; renderTactics(); } };
     $('tacticList').addEventListener('click', e => {
       const row = e.target.closest('.tactic-row');
@@ -736,11 +773,13 @@
       save(); renderTactics(); $('phaseMask').classList.remove('show');
     };
 
-    // 4. 抽屉事件委托
+    // 3. 抽屉及动作
     $('drawerFooter').addEventListener('click', e => {
       if (e.target.id === 'btn-save-tactics') {
         if (isAddingAction && currentActionDraft.skillId) {
-          const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
+          const sk = getSkill(currentPlayer.class, currentActionDraft.skillId);
+          if (!sk) return toast('技能已失效，请重新选择', 'error');
+          if (sk.depType === 'required' && !currentActionDraft.item) return toast('请先为技能选择所需物品', 'warn');
           if (sk.timing && !sk.timing.includes(currentActionDraft.timing)) return toast('技能时机不符', 'error');
           if (sk.selfOnly) currentActionDraft.target = '自身';
           actionsDraft.push({ ...currentActionDraft });
@@ -757,8 +796,16 @@
       if (e.target.id === 'saveBtn') {
         if (!playerDraft.name.trim()) return toast('请输入名字', 'warn');
         if (db.players.find(p => p.name === playerDraft.name.trim() && p.id !== currentPlayer?.id)) return toast('场上已有该队员', 'warn');
-        if (!currentPlayer) db.players.push({ id: Date.now().toString(), name: playerDraft.name.trim(), class: playerDraft.class, position: playerDraft.position });
-        else Object.assign(currentPlayer, { name: playerDraft.name.trim(), class: playerDraft.class, position: playerDraft.position });
+        
+        if (!currentPlayer) {
+          db.players.push({ id: Date.now().toString(), name: playerDraft.name.trim(), class: playerDraft.class, position: playerDraft.position });
+        } else {
+          // ★ 如果职业被修改了，清理旧战术，防止技能对不上
+          if (currentPlayer.class !== playerDraft.class) {
+            Object.keys(db.actions).forEach(ph => delete db.actions[ph][currentPlayer.id]);
+          }
+          Object.assign(currentPlayer, { name: playerDraft.name.trim(), class: playerDraft.class, position: playerDraft.position });
+        }
         save(); $('drawerClose').onclick(); renderDeploy(); toast('保存成功', 'ok');
       }
     });
@@ -769,7 +816,8 @@
       if (t.id === 'cancelAddBtn') { isAddingAction = false; renderDrawerBody(); }
       if (t.id === 'confirmAddBtn') {
         if (!currentActionDraft.skillId) return toast('请选择技能', 'warn');
-        const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
+        const sk = getSkill(currentPlayer.class, currentActionDraft.skillId);
+        if (!sk) return toast('技能已失效，请重新选择', 'error');
         if (sk.depType === 'required' && !currentActionDraft.item) return toast('需选择物品', 'warn');
         if (sk.timing && !sk.timing.includes(currentActionDraft.timing)) return toast(`【${sk.name}】不支持在 ${currentActionDraft.timing} 释放！`, 'error');
         if (sk.selfOnly) currentActionDraft.target = '自身';
@@ -786,9 +834,9 @@
         const f = e.target.dataset.afield;
         if (f === 'skillId') {
           currentActionDraft.skillId = e.target.value || null; currentActionDraft.item = '';
-          const sk = db.library[currentPlayer.class].find(s => s.id === currentActionDraft.skillId);
+          const sk = getSkill(currentPlayer.class, currentActionDraft.skillId);
           if (sk) {
-            if (sk.depType === 'required' && sk.items?.length === 1) currentActionDraft.item = sk.items[0];
+            if (sk.depType === 'required' && sk.items?.length) currentActionDraft.item = sk.items[0];
             if (sk.timing && !sk.timing.includes('AM')) currentActionDraft.timing = 'PM';
             if (sk.timing && sk.timing.includes('AM') && !sk.timing.includes('PM')) currentActionDraft.timing = 'AM';
             if (sk.selfOnly) currentActionDraft.target = '自身';
@@ -809,7 +857,7 @@
       if (drawerMode === 'deploy' && e.target.dataset.field === 'name') playerDraft.name = e.target.value;
     });
 
-    // 5. 战术库事件委托
+    // 4. 战术库
     document.querySelectorAll('.lib-tab').forEach(t => t.onclick = () => { currentLibTab = t.dataset.libtab; renderLib(); });
     $('libBody').addEventListener('click', e => {
       const t = e.target;
@@ -832,7 +880,7 @@
         save(); renderLib(); toast('已录入', 'ok'); return;
       }
       if (t.classList.contains('btn-edit-skill')) {
-        const skill = db.library[currentLibClass].find(s => s.id === t.dataset.editSkill);
+        const skill = getSkill(currentLibClass, t.dataset.editSkill);
         if (skill) {
           editingSkillId = skill.id;
           $('editSkillName').value = skill.name; $('editSkillDep').value = skill.depType;
@@ -861,7 +909,7 @@
       if (e.target.id === 'newSkillDep') $('newItemRow').style.display = e.target.value === 'none' ? 'none' : 'flex';
     });
 
-    // 6. 修改技能弹窗事件
+    // 5. 修改技能弹窗
     $('editSkillDep').onchange = e => $('editItemRow').style.display = e.target.value === 'none' ? 'none' : 'block';
     $('saveEditSkillBtn').onclick = () => {
       if (!editingSkillId) return;
@@ -870,16 +918,16 @@
       if (!n) return toast('请输入技能名称', 'warn'); if (dep === 'required' && !it) return toast('强依赖必须填物品', 'warn'); if (!isAM && !isPM) return toast('请至少勾选一个可用时机', 'warn');
       const items = dep !== 'none' && it ? it.split(/[,，]/).map(i => i.trim()).filter(Boolean) : [];
       const timingArr = []; if (isAM) timingArr.push('AM'); if (isPM) timingArr.push('PM');
-      const skill = db.library[currentLibClass].find(s => s.id === editingSkillId);
+      const skill = getSkill(currentLibClass, editingSkillId);
       if (skill) { skill.name = n; skill.depType = dep; skill.items = items; skill.timing = timingArr; skill.selfOnly = isSelf; save(); renderLib(); $('editSkillMask').classList.remove('show'); toast('技能修改成功', 'ok'); }
     };
 
-    // 7. 其它顶层输入
+    // 6. 顶层输入与生成
     $('phaseNoteInput').addEventListener('input', e => { db.phaseNotes[currentPhase] = e.target.value; save(); });
+    $('deployNoteInput').addEventListener('input', e => { db.deployNote = e.target.value; save(); });
     $('dungeonName').oninput = e => { db.dungeonName = e.target.value; save(); };
     $('resetBtn').onclick = () => { if(confirm('确定清空所有内容吗？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
     
-    // 8. 生成长图
     $('shareImageBtn').onclick = () => {
       renderShareView(); toast('正在生成高清长图，请稍候...', 'warn');
       setTimeout(() => {
@@ -891,12 +939,11 @@
       }, 300);
     };
 
-    // ================= 9. 快捷键监听引擎 (纯空格触发) =================
+    // ======================== 6. 快捷键引擎 ========================
     document.addEventListener('keydown', (e) => {
-      // 拦截条件：如果是在输入框或文本域里按空格，正常打字，不拦截
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      // 排除输入控件
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
-      // 仅监听空格键
       if (e.code === 'Space') {
         let btn = null;
         if ($('drawer').classList.contains('open')) {
@@ -909,12 +956,12 @@
 
         if (btn) {
           btn.click();
-          e.preventDefault(); // 阻止页面因为按空格而滚动
+          e.preventDefault();
         }
       }
     });
 
-    // ================= 启动 =================
+    // ======================== 启动 ========================
     load();
     switchView('deploy');
   </script>
