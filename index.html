@@ -111,8 +111,8 @@
     .btn.primary:hover { filter: brightness(1.1); }
     .btn.block { width: 100%; }
     .btn.danger { background: rgba(255,92,92,0.1); border-color: var(--danger); color: var(--danger); }
-    input[type="text"], select, textarea { width: 100%; background: #1c1c23; color: var(--text); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: inherit; outline: none; resize: vertical; }
-    input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    input[type="text"], input[type="number"], select, textarea { width: 100%; background: #1c1c23; color: var(--text); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: inherit; outline: none; resize: vertical; }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
     .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
     .field > label { font-weight: 700; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
     .radio-row { display: flex; gap: 16px; align-items: center; }
@@ -159,6 +159,9 @@
     .skill-card .s-timing.am { background: rgba(255, 200, 87, 0.15); color: var(--warn); border: 1px solid rgba(255, 200, 87, 0.3); }
     .skill-card .s-timing.pm { background: rgba(0, 217, 255, 0.15); color: var(--accent); border: 1px solid rgba(0, 217, 255, 0.3); }
     .skill-card .s-tag-self { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; background: rgba(192, 132, 252, 0.15); color: var(--purple); border: 1px solid rgba(192, 132, 252, 0.3); }
+    .skill-card .s-role { font-size: 10px; padding: 2px 4px; border-radius: 4px; font-weight: normal; border: 1px solid var(--line-strong); color: var(--muted); }
+    .skill-card .s-role.passive { background: rgba(192, 132, 252, 0.12); color: var(--purple); border-color: rgba(192, 132, 252, 0.3); }
+    .skill-card .s-role.potion { background: rgba(74, 222, 128, 0.12); color: var(--success); border-color: rgba(74, 222, 128, 0.3); }
     .skill-card .btn-del-skill { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; }
     .skill-card:hover .btn-del-skill { opacity: 1; }
     .skill-card .btn-edit-skill { position: absolute; top: 8px; right: 8px; background: transparent; border: none; color: var(--accent); cursor: pointer; font-size: 14px; opacity: 0.5; }
@@ -319,6 +322,7 @@
       <div class="modal-head"><h3>修改技能</h3><button class="icon-btn" id="closeEditSkillBtn">&times;</button></div>
       <div class="flex-col gap-10" style="padding: 20px;">
         <div class="field"><label>技能名称</label><input type="text" id="editSkillName"></div>
+        <div class="field"><label>技能类型</label><select id="editSkillRole"><option value="active">主动（可排入行动）</option><option value="passive">被动（不主动释放）</option><option value="potion">药剂（消耗品）</option></select></div>
         <div class="field"><label>物品依赖</label><select id="editSkillDep"><option value="none">无依赖</option><option value="required">强依赖</option><option value="optional">弱依赖</option></select></div>
         <div class="field" id="editItemRow" style="display:none;"><label>物品名称 (多个逗号隔开)</label><input type="text" id="editSkillItem"></div>
         <div class="field flex-row gap-15" style="margin-top:10px;">
@@ -371,16 +375,28 @@
 
     let currentView = 'deploy', currentPhase = 'F1', currentPlayer = null;
     let drawerMode = 'deploy', playerDraft = {}, actionsDraft = [], isAddingAction = false, currentActionDraft = {};
+    let showHiddenSkills = false; // 添加动作时是否显示被动/药剂
     let currentLibClass = CLASS_NAMES[0], currentLibTab = 'roster';
     let editingSkillId = null;
 
     const $ = id => document.getElementById(id);
     const toastBox = $('toastBox');
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // 唯一 id，避免 Date.now() 在同一毫秒内重复
+    const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
     // 统一查找技能
     function getSkill(className, skillId) {
       return (db.library[className] || []).find(s => s.id === skillId);
+    }
+
+    // 技能类型：主动 / 被动 / 药剂。源数据没有现成字段，按名称与用法推断，可在“修改技能”里手动改
+    function inferSkillRole(s) {
+      const n = s.name || '';
+      if (/饮用|药剂/.test(n)) return 'potion';
+      if (n.startsWith('行动：') || /闪避|回避|抗魔/.test(n) || n === '治愈：治愈之手') return 'passive';
+      if (String(s.timingRule || '').startsWith('法力消耗') && !s.target) return 'passive';
+      return 'active';
     }
 
     // 统一处理结构，包含版本兼容
@@ -388,11 +404,15 @@
       if (!d.library) d.library = {};
       if (!d.phaseNotes) d.phaseNotes = {};
       if (typeof d.deployNote !== 'string') d.deployNote = '';
-      const fixC = c => c === '死灵术士' ? '死灵师' : c === '炼金术师' ? '炼金术士' : c;
-      const fixP = p => POSITIONS.includes(p) ? p : (p.includes('前')?'前':p.includes('后')?'后':p.includes('左')?'左':p.includes('右')?'右':'中');
+      const fixC = c => c === '死灵术士' ? '死灵师' : c === '炼金术师' ? '炼金术士' : (typeof c === 'string' && c ? c : '其他');
+      // position 可能缺失，不能直接调用 includes，否则旧数据会让恢复流程崩溃
+      const fixP = p => {
+        const s = typeof p === 'string' ? p : '';
+        return POSITIONS.includes(s) ? s : (s.includes('前')?'前':s.includes('后')?'后':s.includes('左')?'左':s.includes('右')?'右':'中');
+      };
 
       if (d.roster) d.roster = d.roster.filter(r => r && r.name).map(r => ({...r, class: fixC(r.class)}));
-      if (d.players) d.players = d.players.filter(p => p && p.name && p.class).map(p => ({...p, class: fixC(p.class), position: fixP(p.position)})).slice(0, 12);
+      if (d.players) d.players = d.players.filter(p => p && p.name).map(p => ({...p, class: fixC(p.class), position: fixP(p.position), level: Math.min(40, Math.max(1, parseInt(p.level, 10) || 1))})).slice(0, 12);
       if (d.library) {
         Object.keys(d.library).forEach(c => {
           if (!Array.isArray(d.library[c])) d.library[c] = [];
@@ -450,7 +470,7 @@
               <div class="player-card" data-id="${p.id}">
                 <button class="del-btn" data-del="${p.id}">×</button>
                 <div class="name">${esc(p.name)}</div>
-                <div class="class">${esc(p.class)}</div>
+                <div class="class">Lv.${p.level || 1} · ${esc(p.class)}</div>
               </div>
             `).join('')}
             ${list.length === 0 ? `<div class="text-muted" style="font-size:12px; margin-top:20px;">(空)</div>` : ''}
@@ -463,6 +483,16 @@
     function renderTactics() {
       $('phaseBar').innerHTML = db.activePhases.map(p => `<button class="phase-btn${p === currentPhase ? ' active' : ''}" data-phase="${p}">${p}</button>`).join('');
       $('phaseNoteInput').value = db.phaseNotes[currentPhase] || '';
+
+      if (!db.players.length) {
+        $('tacticList').innerHTML = `
+          <div class="tactic-group" style="padding:48px 20px;text-align:center;">
+            <div style="font-size:15px;color:var(--text);margin-bottom:8px;">还没有任何队员</div>
+            <div class="text-muted" style="font-size:13px;margin-bottom:16px;">请先到「1. 排兵布阵」里添加队员，再回来编排战术。</div>
+            <button class="btn primary" data-goto-deploy>前往排兵布阵</button>
+          </div>`;
+        return;
+      }
 
       $('tacticList').innerHTML = POSITIONS.map(pos => {
         const list = db.players.filter(p => p.position === pos);
@@ -571,6 +601,7 @@
 
     // ======================== 4. 抽屉与弹窗渲染 ========================
     function renderDrawerBody() {
+      const activeField = document.activeElement && document.activeElement.dataset ? (document.activeElement.dataset.afield || '') : '';
       if (drawerMode === 'deploy') {
         const rosterOpts = '<option value="">-- 选择名册 --</option>' + db.roster.map(r => {
           const exist = db.players.find(p => p.name === r.name && p.id !== currentPlayer?.id);
@@ -585,6 +616,7 @@
           <div class="field"><label>名字</label><input type="text" id="playerNameInput" data-field="name" value="${esc(playerDraft.name)}"></div>
           <div class="field"><label>职业</label><select id="playerClassInput" data-field="class">${CLASS_NAMES.map(c => `<option value="${c}"${playerDraft.class===c?' selected':''}>${c}</option>`).join('')}</select></div>
           <div class="field"><label>固定站位</label><select data-field="position">${POSITIONS.map(p => `<option value="${p}"${playerDraft.position===p?' selected':''}>${p}</option>`).join('')}</select></div>
+          <div class="field"><label>等级 (1-40)</label><input type="number" id="playerLevelInput" data-field="level" min="1" max="40" value="${playerDraft.level || 1}"></div>
         `;
         $('drawerFooter').innerHTML = `
           <button class="btn danger" id="deletePlayerBtn" style="display:${currentPlayer?'block':'none'};">移除队员</button>
@@ -601,7 +633,7 @@
 
       let formHtml = '';
       if (isAddingAction) {
-        if (!currentActionDraft.skillId) currentActionDraft = { timing: 'AM', skillId: null, item: '', target: '前', remark: '' };
+        if (!currentActionDraft.timing) currentActionDraft = { timing: 'AM', skillId: null, item: '', target: '前', remark: '' };
         const selSk = getSkill(currentPlayer.class, currentActionDraft.skillId);
         let itemHtml = '';
         
@@ -612,6 +644,22 @@
         const isPmOnly = selSk && selSk.timing && !selSk.timing.includes('AM');
         const isAmOnly = selSk && selSk.timing && selSk.timing.includes('AM') && !selSk.timing.includes('PM');
         const isSelfOnly = selSk && selSk.selfOnly;
+        // 只列出当前等级可学、且默认为主动的技能；被动/药剂可通过开关展开
+        const playerLevel = currentPlayer.level || 1;
+        const roleOf = s => s.skillRole || inferSkillRole(s);
+        const visibleSkills = skills.filter(s => {
+          const levelOk = !s.learnLevel || s.learnLevel <= playerLevel;
+          const roleOk = showHiddenSkills || roleOf(s) === 'active';
+          return (levelOk && roleOk) || s.id === currentActionDraft.skillId;
+        });
+        const activeCount = skills.filter(s => roleOf(s) === 'active' && (!s.learnLevel || s.learnLevel <= playerLevel)).length;
+        // 技能按学习等级分组，避免一个职业上百个选项时难以查找
+        const skillGroups = {};
+        visibleSkills.forEach(s => { const k = s.learnLv || '其他'; (skillGroups[k] = skillGroups[k] || []).push(s); });
+        const skillOptions = Object.keys(skillGroups)
+          .sort((a, b) => (parseInt(a, 10) || 99) - (parseInt(b, 10) || 99))
+          .map(k => `<optgroup label="${esc(k)}">${skillGroups[k].map(s => `<option value="${s.id}"${currentActionDraft.skillId===s.id?' selected':''}>${esc(s.name)}</option>`).join('')}</optgroup>`)
+          .join('');
         
         formHtml = `
           <div style="background:#1c1c23;padding:15px;border-radius:6px;border:1px solid var(--accent);margin-top:20px;">
@@ -619,13 +667,23 @@
             <div class="field">
               <label>时机</label>
               <div class="radio-row">
-                <label class="radio"><input type="radio" name="a_timing" value="AM"${currentActionDraft.timing==='AM'?' checked':''} ${isPmOnly ? 'disabled' : ''}>AM</label>
-                <label class="radio"><input type="radio" name="a_timing" value="PM"${currentActionDraft.timing==='PM'?' checked':''} ${isAmOnly ? 'disabled' : ''}>PM</label>
+                <label class="radio"><input type="radio" name="a_timing" value="AM"${currentActionDraft.timing==='AM'?' checked':''} ${isPmOnly ? 'disabled' : ''}>AM（回合前）</label>
+                <label class="radio"><input type="radio" name="a_timing" value="PM"${currentActionDraft.timing==='PM'?' checked':''} ${isAmOnly ? 'disabled' : ''}>PM（回合中）</label>
               </div>
               ${isPmOnly ? `<span style="font-size:12px; color:var(--danger);">此技能限制了只能在回合中(PM)释放</span>` : ''}
               ${isAmOnly ? `<span style="font-size:12px; color:var(--warn);">此技能限制了只能在回合前(AM)释放</span>` : ''}
             </div>
-            <div class="field"><label>技能</label><select data-afield="skillId"><option value="">--选择--</option>${skills.map(s => `<option value="${s.id}"${currentActionDraft.skillId===s.id?' selected':''}>${esc(s.name)}</option>`).join('')}</select></div>
+            <div class="field">
+              <div class="flex-between" style="gap:10px;">
+                <label style="font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">技能</label>
+                <label class="radio" style="font-size:12px;"><input type="checkbox" id="showHiddenSkills" ${showHiddenSkills?'checked':''}> 显示被动/药剂</label>
+              </div>
+              <select data-afield="skillId">
+                <option value="">${visibleSkills.length ? '--选择--' : '-- 当前等级没有可主动释放的技能 --'}</option>
+                ${skillOptions}
+              </select>
+              <span class="text-muted" style="font-size:12px;">Lv.${playerLevel}：可主动释放 ${activeCount} 个${showHiddenSkills ? '（已展开被动/药剂）' : ''}</span>
+            </div>
             ${itemHtml}
             <div class="field">
               <label>使用位置</label>
@@ -644,6 +702,11 @@
 
       $('drawerBody').innerHTML = `<div style="margin-bottom:20px;"><h4 style="color:var(--text);font-size:14px;margin:0 0 12px 0;">已配置 (${actionsDraft.length})</h4>${listHtml}</div>${formHtml}`;
       $('drawerFooter').innerHTML = `<button class="btn primary block" id="btn-save-tactics" data-hotkey="true">保存战术</button>`;
+      // 重绘后把焦点还给刚才操作的字段，避免选完技能后输入中断
+      if (activeField) {
+        const el = $('drawerBody').querySelector(`[data-afield="${activeField}"]`);
+        if (el) el.focus({ preventScroll: true });
+      }
     }
 
     function renderLib() {
@@ -669,10 +732,12 @@
                 else if (hasAM) timingTag = `<span class="s-timing am">仅AM</span>`;
                 else timingTag = `<span class="s-timing pm">仅PM</span>`;
                 let selfTag = s.selfOnly ? `<span class="s-tag-self">[自身]</span>` : '';
+                const role = s.skillRole || inferSkillRole(s);
+                const roleTag = `<span class="s-role ${role}">${{ active: '主动', passive: '被动', potion: '药剂' }[role]}</span>`;
                 return `<div class="skill-card">
                   <button class="btn-del-skill" data-del-skill="${s.id}">×</button>
                   <button class="btn-edit-skill" data-edit-skill="${s.id}" title="修改技能">✏️</button>
-                  <div class="s-name"><span>${esc(s.name)}</span> <div class="flex-row" style="gap:4px;">${timingTag}${selfTag}</div></div>
+                  <div class="s-name"><span>${esc(s.name)}</span> <div class="flex-row" style="gap:4px;">${roleTag}${timingTag}${selfTag}</div></div>
                   ${s.items?.length ? `<div class="s-item">${s.depType==='required'?'🔒':'🎲'} ${esc(s.items.join('/'))}</div>` : ''}
                 </div>`;
               }).join('') || '空'}
@@ -708,6 +773,12 @@
             <button class="btn primary block" id="genCodeBtn" style="margin:10px 0;">📋 生成全量数据备份</button>
             <textarea id="dataCodeText" rows="6" placeholder="生成或粘贴数据备份..." style="font-family:monospace;"></textarea>
             <button class="btn block" id="restoreCodeBtn" style="margin-top:10px;color:var(--warn);border-color:var(--warn);">🔄 恢复全量数据</button>
+            <div style="border-top:1px dashed var(--line-strong);margin-top:20px;padding-top:16px;">
+              <label style="font-weight:700;color:var(--muted);font-size:11px;letter-spacing:0.5px;">技能库导入（合并，不影响现有副本与战术）</label>
+              <button class="btn primary block" id="importSkillLibBtn" style="margin-top:10px;">📥 导入技能库 JSON</button>
+              <input type="file" id="skillLibFile" accept=".json,application/json" hidden>
+              <div class="text-muted" style="font-size:12px;margin-top:8px;">选择 wiki 转换生成的 wod-skills-library.json，同名技能会更新，不会删除你手工录入的技能。</div>
+            </div>
           </div>`;
       }
     }
@@ -734,7 +805,7 @@
       const add = e.target.closest('.add-btn');
       if (add) {
         if (db.players.length >= 12) return toast('满编 12 人', 'warn');
-        drawerMode = 'deploy'; currentPlayer = null; playerDraft = { name: '', class: CLASS_NAMES[0], position: add.dataset.add };
+        drawerMode = 'deploy'; currentPlayer = null; playerDraft = { name: '', class: CLASS_NAMES[0], position: add.dataset.add, level: 1 };
         $('drawerTitle').textContent = '添加新队员'; $('drawerSub').textContent = `入驻位置：${add.dataset.add}`;
         renderDrawerBody(); $('drawer').classList.add('open'); $('drawerMask').classList.add('show');
         return;
@@ -743,7 +814,7 @@
       if (card) {
         const player = db.players.find(p => p.id === card.dataset.id);
         if (!player) return;
-        drawerMode = 'deploy'; currentPlayer = player; playerDraft = { name: player.name, class: player.class, position: player.position };
+        drawerMode = 'deploy'; currentPlayer = player; playerDraft = { name: player.name, class: player.class, position: player.position, level: player.level || 1 };
         $('drawerTitle').textContent = '修改队员信息'; $('drawerSub').textContent = `入驻位置：${player.position}`;
         renderDrawerBody(); $('drawer').classList.add('open'); $('drawerMask').classList.add('show');
       }
@@ -752,13 +823,14 @@
     // 2. 战术编排
     $('phaseBar').onclick = e => { if (e.target.classList.contains('phase-btn')) { currentPhase = e.target.dataset.phase; renderTactics(); } };
     $('tacticList').addEventListener('click', e => {
+      if (e.target.closest('[data-goto-deploy]')) { switchView('deploy'); return; }
       const row = e.target.closest('.tactic-row');
       if (row) {
         const player = db.players.find(p => p.id === row.dataset.id);
         if (!player) return;
         drawerMode = 'tactic'; currentPlayer = player; actionsDraft = (db.actions[currentPhase]?.[player.id] || []).map(a => ({...a}));
-        isAddingAction = false; currentActionDraft = {};
-        $('drawerTitle').textContent = player.name; $('drawerSub').textContent = `${player.class} · ${currentPhase} 阶段`;
+        isAddingAction = false; currentActionDraft = {}; showHiddenSkills = false;
+        $('drawerTitle').textContent = player.name; $('drawerSub').textContent = `${player.class} · Lv.${player.level || 1} · ${currentPhase} 阶段`;
         renderDrawerBody(); $('drawer').classList.add('open'); $('drawerMask').classList.add('show');
       }
     });
@@ -791,20 +863,22 @@
       if (e.target.id === 'deletePlayerBtn') {
         db.players = db.players.filter(p => p.id !== currentPlayer.id);
         Object.keys(db.actions).forEach(ph => delete db.actions[ph][currentPlayer.id]);
-        save(); $('drawerClose').onclick(); renderDeploy(); toast('已移出', 'ok');
+        save(); $('drawerClose').onclick(); currentView === 'tactics' ? renderTactics() : renderDeploy(); toast('已移出', 'ok');
       }
       if (e.target.id === 'saveBtn') {
         if (!playerDraft.name.trim()) return toast('请输入名字', 'warn');
         if (db.players.find(p => p.name === playerDraft.name.trim() && p.id !== currentPlayer?.id)) return toast('场上已有该队员', 'warn');
         
         if (!currentPlayer) {
-          db.players.push({ id: Date.now().toString(), name: playerDraft.name.trim(), class: playerDraft.class, position: playerDraft.position });
+          db.players.push({ id: uid(), name: playerDraft.name.trim(), class: playerDraft.class, position: playerDraft.position, level: Math.min(40, Math.max(1, parseInt(playerDraft.level, 10) || 1)) });
         } else {
           // ★ 如果职业被修改了，清理旧战术，防止技能对不上
           if (currentPlayer.class !== playerDraft.class) {
+            const used = Object.keys(db.actions).reduce((n, ph) => n + ((db.actions[ph] && db.actions[ph][currentPlayer.id] || []).length), 0);
+            if (used && !confirm(`【${currentPlayer.name}】已配置 ${used} 条战术，修改职业会全部清空，确定继续？`)) return;
             Object.keys(db.actions).forEach(ph => delete db.actions[ph][currentPlayer.id]);
           }
-          Object.assign(currentPlayer, { name: playerDraft.name.trim(), class: playerDraft.class, position: playerDraft.position });
+          Object.assign(currentPlayer, { name: playerDraft.name.trim(), class: playerDraft.class, position: playerDraft.position, level: Math.min(40, Math.max(1, parseInt(playerDraft.level, 10) || 1)) });
         }
         save(); $('drawerClose').onclick(); renderDeploy(); toast('保存成功', 'ok');
       }
@@ -812,7 +886,7 @@
 
     $('drawerBody').addEventListener('click', e => {
       const t = e.target;
-      if (t.id === 'startAddBtn') { isAddingAction = true; renderDrawerBody(); }
+      if (t.id === 'startAddBtn') { isAddingAction = true; currentActionDraft = {}; renderDrawerBody(); }
       if (t.id === 'cancelAddBtn') { isAddingAction = false; renderDrawerBody(); }
       if (t.id === 'confirmAddBtn') {
         if (!currentActionDraft.skillId) return toast('请选择技能', 'warn');
@@ -829,6 +903,7 @@
     });
 
     $('drawerBody').addEventListener('change', e => {
+      if (e.target.id === 'showHiddenSkills') { showHiddenSkills = e.target.checked; renderDrawerBody(); return; }
       if (drawerMode === 'tactic' && isAddingAction) {
         if (e.target.name === 'a_timing') return currentActionDraft.timing = e.target.value;
         const f = e.target.dataset.afield;
@@ -844,7 +919,8 @@
           renderDrawerBody();
         } else if (f) currentActionDraft[f] = e.target.value;
       } else if (drawerMode === 'deploy' && e.target.dataset.field) {
-        playerDraft[e.target.dataset.field] = e.target.value;
+        const f = e.target.dataset.field;
+        playerDraft[f] = f === 'level' ? Math.min(40, Math.max(1, parseInt(e.target.value, 10) || 1)) : e.target.value;
       }
       if (e.target.id === 'rosterSelect') {
         const tr = db.roster.find(r => r.id === e.target.value);
@@ -863,11 +939,37 @@
       const t = e.target;
       if (t.classList.contains('lib-class-btn')) { currentLibClass = t.dataset.class; renderLib(); return; }
       if (t.classList.contains('btn-del-roster')) { db.roster = db.roster.filter(r => r.id !== t.dataset.delRoster); save(); renderLib(); return; }
-      if (t.classList.contains('btn-del-skill')) { db.library[currentLibClass] = db.library[currentLibClass].filter(s => s.id !== t.dataset.delSkill); save(); renderLib(); return; }
+      if (t.classList.contains('btn-del-skill')) {
+        const sid = t.dataset.delSkill;
+        // 统计该技能被当前职业的战术引用次数，避免删掉后战术里出现失效技能
+        let used = 0;
+        Object.keys(db.actions).forEach(ph => {
+          const byPlayer = db.actions[ph] || {};
+          Object.keys(byPlayer).forEach(pid => {
+            const pl = db.players.find(p => p.id === pid);
+            if (pl && pl.class === currentLibClass) used += (byPlayer[pid] || []).filter(a => a.skillId === sid).length;
+          });
+        });
+        if (used && !confirm(`该技能已被 ${used} 条战术引用，删除后会一并移除这些动作，确定继续？`)) return;
+        if (used) {
+          Object.keys(db.actions).forEach(ph => {
+            const byPlayer = db.actions[ph] || {};
+            Object.keys(byPlayer).forEach(pid => {
+              const pl = db.players.find(p => p.id === pid);
+              if (!pl || pl.class !== currentLibClass) return;
+              byPlayer[pid] = byPlayer[pid].filter(a => a.skillId !== sid);
+              if (!byPlayer[pid].length) delete byPlayer[pid];
+            });
+          });
+          renderTactics();
+        }
+        db.library[currentLibClass] = db.library[currentLibClass].filter(s => s.id !== sid);
+        save(); renderLib(); return;
+      }
       
       if (t.id === 'addRosterBtn') {
         const n = $('newRosterName').value.trim(); if (!n) return toast('请输入名字', 'warn');
-        db.roster.push({ id: Date.now().toString(), name: n, class: $('newRosterClass').value });
+        db.roster.push({ id: uid(), name: n, class: $('newRosterClass').value });
         save(); renderLib(); toast('已录入', 'ok'); return;
       }
       if (t.id === 'addSkillBtn') {
@@ -876,7 +978,7 @@
         if (!n) return toast('请输入名称', 'warn'); if (dep === 'required' && !it) return toast('强依赖必须填物品', 'warn'); if (!isAM && !isPM) return toast('请至少勾选一个可用时机', 'warn');
         const items = dep !== 'none' && it ? it.split(/[,，]/).map(i => i.trim()).filter(Boolean) : [];
         const timingArr = []; if (isAM) timingArr.push('AM'); if (isPM) timingArr.push('PM');
-        db.library[currentLibClass].push({ id: Date.now().toString(), name: n, depType: dep, items, timing: timingArr, selfOnly: isSelf });
+        db.library[currentLibClass].push({ id: uid(), name: n, depType: dep, items, timing: timingArr, selfOnly: isSelf, skillRole: 'active' });
         save(); renderLib(); toast('已录入', 'ok'); return;
       }
       if (t.classList.contains('btn-edit-skill')) {
@@ -884,6 +986,7 @@
         if (skill) {
           editingSkillId = skill.id;
           $('editSkillName').value = skill.name; $('editSkillDep').value = skill.depType;
+          $('editSkillRole').value = skill.skillRole || inferSkillRole(skill);
           $('editSkillItem').value = skill.items ? skill.items.join(', ') : ''; $('editItemRow').style.display = skill.depType === 'none' ? 'none' : 'block';
           $('editSkillAM').checked = skill.timing ? skill.timing.includes('AM') : true;
           $('editSkillPM').checked = skill.timing ? skill.timing.includes('PM') : true;
@@ -903,23 +1006,73 @@
         catch(e) { toast('代码损坏', 'error'); }
         return;
       }
+      if (t.id === 'importSkillLibBtn') { $('skillLibFile').click(); return; }
     });
 
     $('libBody').addEventListener('change', e => {
       if (e.target.id === 'newSkillDep') $('newItemRow').style.display = e.target.value === 'none' ? 'none' : 'flex';
+      if (e.target.id === 'skillLibFile') { importSkillLibrary(e.target.files && e.target.files[0]); e.target.value = ''; }
     });
+
+    async function importSkillLibrary(file) {
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        const lib = data && data.library ? data.library : data;
+        if (!lib || typeof lib !== 'object' || Array.isArray(lib)) throw new Error('bad format');
+        let added = 0, updated = 0, skipped = 0;
+        Object.keys(lib).forEach(cls => {
+          if (!CLASS_NAMES.includes(cls) || !Array.isArray(lib[cls])) { skipped++; return; }
+          if (!Array.isArray(db.library[cls])) db.library[cls] = [];
+          const byName = new Map(db.library[cls].map(s => [s.name, s]));
+          const idSet = new Set(db.library[cls].map(s => s.id));
+          lib[cls].forEach(src => {
+            if (!src || !src.name) return;
+            const patch = {
+              depType: src.depType || 'none',
+              items: Array.isArray(src.items) ? src.items : [],
+              timing: Array.isArray(src.timing) && src.timing.length ? src.timing : ['AM', 'PM'],
+              selfOnly: !!src.selfOnly,
+              skillRole: src.skillRole || inferSkillRole(src),
+              learnLv: src.learnLv || '',
+              learnLevel: src.learnLevel || 1,
+              skillType: src.skillType || '',
+              skillCategory: src.skillCategory || '',
+              target: src.target || '',
+              mana: src.mana || '',
+              timingRule: src.timingRule || '',
+              source: src.source || 'wiki'
+            };
+            const old = byName.get(src.name);
+            if (old) { Object.assign(old, patch); updated++; return; } // 保留原 id，避免已有战术引用失效
+            let id = src.id;
+            if (!id || idSet.has(id)) id = uid();
+            idSet.add(id);
+            const skill = { id, name: src.name, ...patch };
+            db.library[cls].push(skill); byName.set(skill.name, skill); added++;
+          });
+        });
+        save(); renderLib();
+        if (!added && !updated) { toast('没有可导入的技能：请确认选择的是 wod-skills-library.json', 'warn'); return; }
+        toast(`技能库导入完成：新增 ${added}，更新 ${updated}${skipped ? `，跳过 ${skipped} 个非当前职业` : ''}`, 'ok');
+      } catch (err) {
+        console.error(err);
+        toast('导入失败：请选择 wod-skills-library.json', 'error');
+      }
+    }
 
     // 5. 修改技能弹窗
     $('editSkillDep').onchange = e => $('editItemRow').style.display = e.target.value === 'none' ? 'none' : 'block';
     $('saveEditSkillBtn').onclick = () => {
       if (!editingSkillId) return;
       const n = $('editSkillName').value.trim(); const dep = $('editSkillDep').value; const it = $('editSkillItem').value.trim();
+      const role = $('editSkillRole').value;
       const isAM = $('editSkillAM').checked; const isPM = $('editSkillPM').checked; const isSelf = $('editSkillSelfOnly').checked;
       if (!n) return toast('请输入技能名称', 'warn'); if (dep === 'required' && !it) return toast('强依赖必须填物品', 'warn'); if (!isAM && !isPM) return toast('请至少勾选一个可用时机', 'warn');
       const items = dep !== 'none' && it ? it.split(/[,，]/).map(i => i.trim()).filter(Boolean) : [];
       const timingArr = []; if (isAM) timingArr.push('AM'); if (isPM) timingArr.push('PM');
       const skill = getSkill(currentLibClass, editingSkillId);
-      if (skill) { skill.name = n; skill.depType = dep; skill.items = items; skill.timing = timingArr; skill.selfOnly = isSelf; save(); renderLib(); $('editSkillMask').classList.remove('show'); toast('技能修改成功', 'ok'); }
+      if (skill) { skill.name = n; skill.skillRole = role; skill.depType = dep; skill.items = items; skill.timing = timingArr; skill.selfOnly = isSelf; save(); renderLib(); $('editSkillMask').classList.remove('show'); toast('技能修改成功', 'ok'); }
     };
 
     // 6. 顶层输入与生成
@@ -929,6 +1082,7 @@
     $('resetBtn').onclick = () => { if(confirm('确定清空所有内容吗？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
     
     $('shareImageBtn').onclick = () => {
+      if (typeof html2canvas !== 'function') { toast('缺少 html2canvas.min.js，请把它和本页面放在同一目录', 'error'); return; }
       renderShareView(); toast('正在生成高清长图，请稍候...', 'warn');
       setTimeout(() => {
         html2canvas($('share-view'), { scale: 2, useCORS: true, backgroundColor: '#121218' }).then(canvas => {
@@ -941,22 +1095,24 @@
 
     // ======================== 6. 快捷键引擎 ========================
     document.addEventListener('keydown', (e) => {
-      // 排除输入控件
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      // 排除输入控件，以及可被空格原生触发的按钮，避免一次按键触发两次
+      if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'].includes(e.target.tagName)) return;
+      if (e.repeat) return;
 
       if (e.code === 'Space') {
         let btn = null;
         if ($('drawer').classList.contains('open')) {
           btn = $('drawer').querySelector('[data-hotkey="true"]');
-        } else if ($('libMask').classList.contains('show')) {
-          btn = $('libBody').querySelector('[data-hotkey="true"]');
         } else if ($('editSkillMask').classList.contains('show')) {
+          // 修改技能弹窗层级高于战术库弹窗，必须优先命中
           btn = $('saveEditSkillBtn');
+        } else if ($('libMask').classList.contains('show') && (currentLibTab === 'roster' || currentLibTab === 'skills')) {
+          btn = $('libBody').querySelector('[data-hotkey="true"]');
         }
 
         if (btn) {
-          btn.click();
           e.preventDefault();
+          btn.click();
         }
       }
     });
